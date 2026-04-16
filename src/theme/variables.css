@@ -1,0 +1,18 @@
+/* For information on how to create your own theme, please refer to:
+http://ionicframework.com/docs/theming/ */
+body {
+    --ion-background-color: #ebebebd1;
+}
+
+.login-bg {
+    --background: #b5eae2;
+}
+.group {
+    --background: #6d5978;
+}
+.conf {
+    --background: #d8dab3;
+}
+.nexoA {
+    --background: #adacac;
+}
