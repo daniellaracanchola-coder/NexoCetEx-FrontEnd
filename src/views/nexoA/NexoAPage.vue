@@ -117,59 +117,155 @@ const dudas = ref([]);
 const nuevaDuda = ref('');
 const usuario = ref(null);
 
-onMounted(() => {
-  const userData = localStorage.getItem('usuario');
-  if (userData) {
-    usuario.value = JSON.parse(userData);
-  }
-  const dudaData =  localStorage.getItem('dudas');
-  if (dudaData) {
-    dudas.value = JSON.parse(dudaData);
-  }
+onMounted(async () => {
+    const userData = localStorage.getItem('usuario');
+    if (userData) {
+            usuario.value = JSON.parse(userData);
+    }
+    try {
+        const res = await fetch('http://192.168.1.80:3000/dudas');
+        if (!res.ok) {
+            throw new Error('Error en el servidor');
+        }
+        const data = await res.json();
+        dudas.value = data.map(d => ({
+            ...d,
+            mostrarRespuesta: false,
+            nuevaRespues: ''
+            }));
+        } catch (error) {
+        console.error('Error al cargar dudas:', error);
+    }
+
 });
-const crearDuda = () => {
-  if(!nuevaDuda.value) return;
-  dudas.value.unshift({
-    id: Date.now(),
-    conte: nuevaDuda.value,
-    autor: usuario?.value?.username,
-    fecha: new Date().toISOString(),
-    respuestas: [],
-    mostrarRespuesta: false,
-    nuevaRespues: '',
-    importancia: false,
-    revision: false
-  });
-  nuevaDuda.value = '';
-  abrirM.value = false;
-  localStorage.setItem('dudas', JSON.stringify(dudas.value));
+
+const crearDuda = async () => {
+    if (!nuevaDuda.value) return;
+    try {
+        const res = await fetch('http://192.168.1.80:3000/dudas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            conte: nuevaDuda.value,
+            autor: usuario.value?.username || 'anonimo'
+        })
+    });
+    
+    if (!res.ok) {
+        throw new Error('Error al crear duda'); 
+    }
+    
+    const data = await res.json();
+    
+    dudas.value.unshift({
+        ...data,
+        mostrarRespuesta: false,
+        nuevaRespues: ''
+    });
+
+    nuevaDuda.value = '';
+    abrirM.value = false;
+    } catch (error) {
+        console.error('Error al crear duda:', error);
+        alert('No se pudo crear la duda');
+    }
 };
 
-const responder = (dud: any) => {
-  if (!dud.nuevaRespues) return;
-  dud.respuestas.push({
-    autor: usuario.value?.username || 'usuario',
-    conte: dud.nuevaRespues,
-    fecha: new Date().toISOString()
-  });
-  dud.nuevaRespues = '';
-  dud.mostrarRespuesta = false;
-  localStorage.setItem('dudas', JSON.stringify(dudas.value));
+const responder = async (dud: any) => {
+    if (!dud.nuevaRespues) return;
+
+    try {
+        const res = await fetch (
+            `http://192.168.1.80:3000/dudas/${dud.id}/respuestas`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    autor: usuario.value?.username || 'usuario',
+                    conte: dud.nuevaRespues
+                })
+            }
+        );
+
+        if (!res.ok) {
+            throw new Error('Error al responder');
+        }
+
+        const dudaActualizada = await res.json();
+        dud.respuestas = dudaActualizada.respuestas;
+        dud.nuevaRespues = '';
+        dud.mostrarRespuesta = false;
+    } catch (error) {
+        console.error(error);
+        alert('No se pudo enviar la respuesta');
+    }
 };
 
-const eliminar = (id: number) => {
-  dudas.value = dudas.value.filter(d => d.id !== id);
-  localStorage.setItem('dudas', JSON.stringify(dudas.value));
+const eliminar = async (id: number) => {
+    try {
+        const res = await fetch(
+            `http://192.168.1.80:3000/dudas/${id}`,
+            {
+                method: 'DELETE'
+            }
+        );
+
+        if (!res.ok) {
+            throw new Error('Error al eliminar');
+        }
+
+        dudas.value = dudas.value.filter(d => d.id !== id);
+
+    } catch (error) {
+        console.error(error);
+        alert('No se puede eliminar la duda');
+    }
 };
 
-const toggleRevision = (dud: any) => {
-  dud.revision = !dud.revision;
-  localStorage.setItem('dudas', JSON.stringify(dudas.value));
+const toggleRevision = async (dud: any) => {
+    try {
+        const res = await fetch(
+            `http://192.168.1.80:3000/dudas/${dud.id}/revision`,
+            {
+                method: 'PUT'
+            }
+        );
+
+        if(!res.ok) {
+            throw new Error('Error al marcar para revision');
+        }
+
+        const dudaActualizada = await res.json();
+        dud.revision = dudaActualizada.revision;
+    } catch (error) {
+        console.error(error);
+        alert('No se pudo marcar para revision');
+    }
 };
 
-const toggleImportant = (dud: any) => {
-  dud.importancia = !dud.importancia;
-  localStorage.setItem('dudas', JSON.stringify(dudas.value));
+const toggleImportant = async (dud: any) => {
+    try {
+        const res = await fetch(
+            `http://192.168.1.80:3000/dudas/${dud.id}/importancia`,
+            {
+                method: 'PUT'
+            }
+        );
+
+        if (!res.ok) {
+            throw new Error('Error al cambiar su importancia');
+        }
+
+        const dudaActualizada = await res.json();
+        dud.importancia = dudaActualizada.importancia;
+    } catch (error) {
+        console.error(error);
+        alert('No se pudo cambiar su importancia');
+    }
 };
 
 </script>
