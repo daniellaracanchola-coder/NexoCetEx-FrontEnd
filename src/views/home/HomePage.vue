@@ -196,7 +196,7 @@ onIonViewWillEnter(() => {
 
 const router = useRouter();
 
-const usuario = ref(null);
+const usuario = ref<any>(null);
 
 const abrirM = ref(false);
 const nuevoTit = ref('');
@@ -204,48 +204,74 @@ const nuevoConte = ref('');
 
 const rolDes = ref('todos');
 
-const anuncios = ref([
-  { id: 1, 
-  titulo: 'Bienvenido', 
-  conte: 'Este es el primer anuncio', 
-  vistosPor: [] }
-]);
+const anuncios = ref<any[]>([]);
 
 const errorA = ref('');
 
-const guardarA = () => {
+const token = localStorage.getItem('token');
+
+
+
+const guardarA = async () => {
   if (!nuevoTit.value || !nuevoConte.value) {
     errorA.value = 'Completa todos los datos';
     return;
   }
 
-  anuncios.value.unshift({
-    id: Date.now(),
-    titulo: nuevoTit.value,
-    conte: nuevoConte.value,
-    vistosPor: [],
-    fecha: new Date().toISOString(),
-    tipo: 'normal',
+    try {
+        const res = await fetch(
+            'http://192.168.1.80:3000/avisos',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    titulo: nuevoTit.value,
+                    conte: nuevoConte.value,
+                    autor: usuario.value?.username,
+                    rolDes: rolDes.value
+                })
+            }
+        );
 
-    autor: usuario.value?.username || 'desconocido',
-    rolDes: rolDes.value
-  });
-  rolDes.value = 'todos';
+        const data = await res.json();
 
-  localStorage.setItem('anuncios', JSON.stringify(anuncios.value));
-  ordenarAnun();
+        if (!res.ok) {
+            errorA.value = data.mensaje;
+            return;
+        }
 
-  nuevoTit.value = '';
-  nuevoConte.value = '';
-  errorA.value = '';
-  abrirM.value = false;
+        await cargarAnun();
+
+        nuevoTit.value = '';
+        nuevoConte.value = '';
+        rolDes.value = 'todos';
+        errorA.value = '';
+        abrirM.value = false;
+    } catch (error) {
+        console.error(error);
+        errorA.value = 'Error al conectarse con el servidor';
+    }
 };
 
-const eliminarAnun = (id: number) => {
-  anuncios.value = anuncios.value.filter(a => a.id !== id);
+const eliminarAnun = async (id: number) => {
+  try {
+    await fetch(
+        `http://192.168.1.80:3000/avisos/${id}`,
+        {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
 
-  localStorage.setItem('anuncios', JSON.stringify(anuncios.value));
-  ordenarAnun();
+    await cargarAnun();
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 onMounted(() => {
@@ -256,26 +282,36 @@ onMounted(() => {
     router.push('/login');
     return;
   }
-
+    if(!token) {
+        router.push('/login');
+        return;
+    }
+    
   usuario.value = JSON.parse(data);
   cargarAnun();
 });
 
-const anunLeido = (anuncio: any) => {
+const anunLeido = async (anuncio: any) => {
+    try {
+        await fetch(
+            `http://192.168.1.80:3000/avisos/${anuncio.id}/leido`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    username: usuario.value?.username
+                })
+            }
+        );
 
-  const anuncioActual = anuncios.value.find(a => a.id === anuncio.id);
-  if (!anuncioActual) return
+        await cargarAnun();
 
-  if (!anuncioActual.vistosPor) {
-    anuncioActual.vistosPor = [];
-  }
-
-  if (!anuncioActual.vistosPor.includes(usuario.value?.username)) {
-    anuncioActual.vistosPor.push(usuario.value?.username);
-  }
-
-  localStorage.setItem('anuncios', JSON.stringify(anuncios.value));
-  ordenarAnun();
+    } catch (error) {
+        console.error(error);
+    }
 }; 
 
 const abrirMFun = () => {
@@ -283,15 +319,23 @@ const abrirMFun = () => {
   abrirM.value = true;
 }
 
-const cambiarTipo = (anuncio: any) => {
-  const anuncioActual = anuncios.value.find(a => a.id === anuncio.id);
+const cambiarTipo = async (anuncio: any) => {
+  try {
+    await fetch(
+        `http://192.168.1.80:3000/avisos/${anuncio.id}/tipo`,
+        {
+            method: 'PUT',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
 
-  if (anuncioActual) {
-    anuncioActual.tipo = anuncioActual.tipo === 'importante' ? 'normal' : 'importante';
+    await cargarAnun();
+
+  } catch (error) {
+    console.error(error);
   }
-
-  localStorage.setItem('anuncios', JSON.stringify(anuncios.value));
-  ordenarAnun();
 };
 
 const ordenarAnun = () => {
@@ -302,21 +346,28 @@ const ordenarAnun = () => {
   });
 }
 
-const cargarAnun = () => {
-  const data = localStorage.getItem('anuncios');
+const cargarAnun = async () => {
+  try {
+    const res = await fetch(
+        'http://192.168.1.80:3000/avisos',
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
 
-  anuncios.value = data ? JSON.parse(data) : [];
+    if (!res.ok) {
+        console.error('Error al cargar avisos');
+        return;
+    }
+    anuncios.value = await res.json();
 
-  anuncios.value = anuncios.value.map(a => ({
-    ...a,
-    tipo: a.tipo || 'normal',
-    rolDes: a.rolDes || 'todos',
-    autor: a.autor || 'admin'
-    
-  }));
-
-  ordenarAnun();
-}
+    ordenarAnun();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 const filtro = computed(() => {
   return anuncios.value.filter(a => {

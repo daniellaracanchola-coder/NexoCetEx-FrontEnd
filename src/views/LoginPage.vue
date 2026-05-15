@@ -28,6 +28,13 @@
       :disabled="!username || !password">
         Entrar
       </ion-button>
+      
+      <ion-button expand="block"
+      fill="clear"
+      @click="goRegister">
+      ¿No tienes cuenta? ¡Registrate aqui!
+      </ion-button>
+
       <p v-if="errorMensaje" style="color:red;">
         {{ errorMensaje}}
       </p>
@@ -57,32 +64,52 @@ const password = ref('');
 
 const errorMensaje = ref('');
 
-const usuarios = [
-  { username: 'adDaniel', password: '1234', rol: 'admin'},
-  { username: 'alumDaniel', password: '4321', rol: 'alumno'},
-  { username: 'alumDan', password: '2222', rol: 'alumno'},
-  { username: 'ProfeDani', password: '0000', rol: 'profesor'},
-  { username: 'ProfeDan', password: '1111', rol: 'profesor'},
-];
-
-const login = () => {
-  console.log("CLICK DETECTADO");
-
+const login = async () => {
   if (!username.value || !password.value) {
     errorMensaje.value = 'Completa todos los campos';
     return;
   }
 
-  const usuarioEncontrado = usuarios.find(
-    u => u.username === username.value && u.password === password.value
-  );
+  try {
+    const res = await fetch(
+        'http://192.168.1.80:3000/auth/login',
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username.value,
+                password: password.value
+            })
+        }
+    );
+    const data = await res.json();
 
-  if (usuarioEncontrado) {
-    localStorage.setItem('usuario', JSON.stringify(usuarioEncontrado));
+    if (!res.ok) {
+        errorMensaje.value = data.mensaje;
+        return;
+    }
+
+    localStorage.setItem(
+        'usuario',
+        JSON.stringify(data.usuario)
+    );
+
+    localStorage.setItem(
+        'token',
+        data.token
+    );
+
     errorMensaje.value = '';
     router.push('/home');
-  } else {
-    errorMensaje.value = 'Usuario o Contraseña incorrectos, por favor reviselos';
+  } catch (error) {
+    console.error(error);
+    errorMensaje.value = 'Error al conectar con el servidor';
   }
+};
+
+const goRegister = () => {
+    router.push('/register');
 };
 </script>

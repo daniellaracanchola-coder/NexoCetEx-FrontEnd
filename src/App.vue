@@ -15,6 +15,7 @@
           <ion-item router-link="/grupos">Grupos</ion-item>
           <ion-item router-link="/nexo-a">Nexo de Ayuda</ion-item>
           <ion-item router-link="/config">Configuracion y Accesibilidad</ion-item>
+          <ion-item router-link="/admin" v-if="usuario?.rol === 'admin'">Administracion</ion-item>
           <ion-item @click="logout">Cerrar sesion</ion-item>
         </ion-list>
       </ion-content>
@@ -42,6 +43,10 @@ import {
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+
+const usuario = JSON.parse(
+    localStorage.getItem('usuario') || 'null'
+);
 
 const logout = () => {
   localStorage.removeItem('usuario');
