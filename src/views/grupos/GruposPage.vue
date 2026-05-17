@@ -117,7 +117,8 @@ import {
 
 import {
     ref,
-    onMounted
+    onMounted,
+    onUnmounted
 } from 'vue';
 
 import { useRouter } from 'vue-router';
@@ -129,6 +130,8 @@ const token = localStorage.getItem('token');
 const busqueda = ref('');
 const usuariosEncontrados = ref<any[]>([]);
 const chats = ref<any[]>([]);
+
+let intervalGrupos: any;
 
 const crearGrupoAula = async () => {
     try{
@@ -210,6 +213,14 @@ const crearChatDirecto = async (usuarioDestinoId: number) =>  {
 onMounted(async () => {
     await crearGrupoAula();
     await cargarChats();
+
+    intervalGrupos = setInterval(() => {
+        cargarChats();    
+    }, 5000);
+});
+
+onUnmounted(() => {
+    clearInterval(intervalGrupos);
 });
 
 const nombreGrupo = ref('');
@@ -260,7 +271,7 @@ const crearGrupo = async () => {
 
 <style scoped>
 .buscador{
-    width: calc(100% - 50%);
+    width: 50%;
     border-radius: 10% 10% 10% 10%;
     margin: 16px auto;
     background-color: #f1e7b9;

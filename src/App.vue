@@ -8,7 +8,7 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-content> <!-- Inicia el contenido del componente -->
+      <ion-content class="Lateral"> <!-- Inicia el contenido del componente -->
         <ion-list> <!-- Inicia una lista que va anidada en el componente -->
           <ion-item router-link="/home">Muro</ion-item> <!-- Los objetos de la lista se componen de ruta de la vista de la pagina y nombre que aparece en el menu -->
           <ion-item router-link="/grupos">Grupos</ion-item>
@@ -51,8 +51,9 @@ const usuario = JSON.parse(
 // Declaracion de la funcion de cerrar sesion, se borra el contenido actual en la variable usuario y recarga la pagina a la vista de Login/ Inicio de sesion 
 const logout = () => {
   localStorage.removeItem('usuario');
+  localStorage.removeItem('token');
   router.push('/login');
 };
 </script>
 
-// Aqui puede ir una tercera parte del codigo, que define el estilo visual de la pagina y los componentes 
+<!-- Aqui puede ir una tercera parte del codigo, que define el estilo visual de la pagina y los componentes -->

@@ -6,7 +6,10 @@
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
           <ion-title>Iniciar sesión</ion-title>
           <div style="display: flex; align-items: center;">
-            <img src="@/assets/AppLogo.png" style="height:40px; margin-right:8px;">
+            <img 
+                src="@/assets/AppLogo.png" 
+                style="height:40px; margin-right:8px;"
+            />
             <p style="margin: 0;"> NEXO CETI EXPRESS </p>
           </div>
         </div>
@@ -15,12 +18,17 @@
 
     <ion-content class="login-bg">
 
-      <ion-input v-model="username" placeholder="Usuario"></ion-input>
+        <ion-input 
+            v-model="username" 
+            placeholder="Usuario"
+            fill="outline">
+        </ion-input>
 
       <ion-input
         v-model="password"
         type="password"
-        placeholder="Contraseña">
+        placeholder="Contraseña"
+        fill="outline">
       </ion-input>
 
       <ion-button expand="block" 
@@ -64,6 +72,10 @@ const password = ref('');
 
 const errorMensaje = ref('');
 
+if (localStorage.getItem('token')){
+    router.push('/home');
+}
+
 const login = async () => {
   if (!username.value || !password.value) {
     errorMensaje.value = 'Completa todos los campos';
@@ -88,6 +100,7 @@ const login = async () => {
 
     if (!res.ok) {
         errorMensaje.value = data.mensaje;
+        password.value = '';
         return;
     }
 

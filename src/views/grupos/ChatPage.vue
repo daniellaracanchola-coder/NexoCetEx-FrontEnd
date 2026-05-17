@@ -12,65 +12,73 @@
             </ion-toolbar>
         </ion-header>
         <ion-content class="ion-padding">
+            <ion-accordion-group>
+                <ion-accordion value="admin-chat">
+                    <ion-item slot="header">
+                        <ion-label>Opciones del chat</ion-label>
+                    </ion-item>
+                    <div slot="content" class="admin-chat">
+                        <ion-input
+                            v-model="nuevoNombre"
+                            placeholder="Nuevo nombre para el chat"
+                            fill="outline">
+                        </ion-input>
 
-            <ion-input
-                v-model="nuevoNombre"
-                placeholder="Nuevo nombre para el chat"
-                fill="outline">
-            </ion-input>
+                        <ion-button
+                            expand="block"
+                            @click="cambiarNombre">
+                            Cambiar el nombre
+                        </ion-button>
 
-            <ion-button
-                expand="block"
-                @click="cambiarNombre">
-                Cambiar el nombre
-            </ion-button>
+                        <ion-input
+                            v-model="busqueda"
+                            placeholder="Buscar usuario para agregar"
+                            fill="outline"
+                            @ionInput="buscarUsuarios">
+                        </ion-input>
 
-            <ion-input
-                v-model="busqueda"
-                placeholder="Buscar usuario para agregar"
-                fill="outline"
-                @ionInput="buscarUsuarios">
-            </ion-input>
+                        <ion-card
+                            v-for="user in usuariosEncontrados"
+                            :key="user.id">
+                            <ion-card-content>
+                                <p>{{ user.username }}</p>
 
-            <ion-card
-                v-for="user in usuariosEncontrados"
-                :key="user.id">
-                <ion-card-content>
-                    <p>{{ user.username }}</p>
+                                <ion-button
+                                expand="block"
+                                @click="agregarIntegrante(user.id)">
+                                Agregar al chat
+                                </ion-button>
+                            </ion-card-content>
+                        </ion-card>
 
-                    <ion-button
-                    expand="block"
-                    @click="agregarIntegrante(user.id)">
-                    Agregar al chat
-                    </ion-button>
-                </ion-card-content>
-            </ion-card>
+                        <h3>Integrantes</h3>
 
-            <h3>Integrantes</h3>
+                        <ion-list>
+                            <ion-item
+                            v-for="integrante in integrantes"
+                            :key="integrante.id">
 
-            <ion-list>
-                <ion-item
-                v-for="integrante in integrantes"
-                :key="integrante.id">
+                                <ion-label>
+                                    {{ integrante.username }} - {{ integrante.rol }}
+                                </ion-label>
 
-                    <ion-label>
-                        {{ integrante.username }} - {{ integrante.rol }}
-                    </ion-label>
+                                <ion-button
+                                    color="danger"
+                                    @click="eliminarIntegrante(integrante.id)">
+                                    Eliminar
+                                </ion-button>
+                            </ion-item>
+                        </ion-list>
 
-                    <ion-button
-                        color="danger"
-                        @click="eliminarIntegrante(integrante.id)">
-                        Eliminar
-                    </ion-button>
-                </ion-item>
-            </ion-list>
-
-            <ion-button
-                expand="block"
-                color="danger"
-                @click="mostrarConfirmacion = true">
-                Eliminar chat
-            </ion-button>
+                        <ion-button
+                            expand="block"
+                            color="danger"
+                            @click="mostrarConfirmacion = true">
+                            Eliminar chat
+                        </ion-button>
+                    </div>
+                </ion-accordion>
+            </ion-accordion-group>
 
             <ion-alert
                 :is-open="mostrarConfirmacion"
@@ -90,7 +98,6 @@
             ]">
             </ion-alert>
 
-            
             <ion-card
                 v-for="mensaje in mensajes"
                 :key="mensaje.id">
@@ -142,7 +149,9 @@ import {
     IonAlert,
     IonItem,
     IonLabel,
-    IonList
+    IonList,
+    IonAccordionGroup,
+    IonAccordion
 } from '@ionic/vue';
 
 import {
@@ -361,3 +370,10 @@ onUnmounted(() => {
     clearInterval(intervalMensajes);
 });
 </script>
+
+<style scoped>
+    .admin-chat {
+        padding: 16px;
+        background-color: #41b7b3;
+    }
+</style>

@@ -1,7 +1,7 @@
 <template> 
   <ion-page> 
     <ion-header :translucent="true"> 
-      <ion-toolbar style="--background: beige; --color: #000000;"> 
+      <ion-toolbar>
         <ion-buttons slot="start"> 
           <ion-menu-button></ion-menu-button> 
         </ion-buttons> 
@@ -15,7 +15,7 @@
       </ion-toolbar> 
     </ion-header> 
 
-    <ion-content :fullscreen="true"> 
+    <ion-content :fullscreen="true" class="avisos"> 
       <ion-header collapse="condense"> 
         <ion-toolbar> 
           <ion-title size="large">Blank</ion-title> 
@@ -186,13 +186,10 @@ import {
   IonSelectOption
 } from '@ionic/vue'; 
 
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { onIonViewWillEnter } from '@ionic/vue';
 
-onIonViewWillEnter(() => {
-  cargarAnun();
-});
+let intervalAvisos: any;
 
 const router = useRouter();
 
@@ -275,21 +272,20 @@ const eliminarAnun = async (id: number) => {
 };
 
 onMounted(() => {
+  usuario.value = JSON.parse(
+    localStorage.getItem('usuario') || 'null'
+  );
   
-  const data = localStorage.getItem('usuario');
-
-  if (!data) {
-    router.push('/login');
-    return;
-  }
-    if(!token) {
-        router.push('/login');
-        return;
-    }
-    
-  usuario.value = JSON.parse(data);
   cargarAnun();
+
+  intervalAvisos = setInterval(() => {
+    cargarAnun();
+  }, 5000);
 });
+
+onUnmounted(() => {
+    clearInterval(intervalAvisos);
+})
 
 const anunLeido = async (anuncio: any) => {
     try {
@@ -317,7 +313,7 @@ const anunLeido = async (anuncio: any) => {
 const abrirMFun = () => {
   errorA.value = '';
   abrirM.value = true;
-}
+};
 
 const cambiarTipo = async (anuncio: any) => {
   try {
@@ -344,7 +340,7 @@ const ordenarAnun = () => {
     if (a.tipo !== 'importante' && b.tipo === 'importante') return 1;
     return (new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime());
   });
-}
+};
 
 const cargarAnun = async () => {
   try {

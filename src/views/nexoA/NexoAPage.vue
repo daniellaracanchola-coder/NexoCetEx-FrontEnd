@@ -110,18 +110,32 @@ import {
   IonCard,
   IonCardContent
 } from '@ionic/vue';
-import { ref, onMounted } from 'vue';
+import { 
+    ref, 
+    onMounted, 
+    onUnmounted 
+} from 'vue';
+
+let intervalDudas: any;
 
 const abrirM = ref(false);
-const dudas = ref([]);
+const dudas = ref<any[]>([]);
 const nuevaDuda = ref('');
-const usuario = ref(null);
+const usuario = ref<any>(null);
 
 onMounted(async () => {
+    cargarDudas();
+    intervalDudas = setInterval(() => {
+        cargarDudas();
+    }, 5000);
+
     const userData = localStorage.getItem('usuario');
     if (userData) {
             usuario.value = JSON.parse(userData);
     }
+});
+
+const cargarDudas = async () => {
     try {
         const res = await fetch('http://192.168.1.80:3000/dudas');
         if (!res.ok) {
@@ -136,7 +150,10 @@ onMounted(async () => {
         } catch (error) {
         console.error('Error al cargar dudas:', error);
     }
+};
 
+onUnmounted(() => {
+    clearInterval(intervalDudas);
 });
 
 const crearDuda = async () => {
@@ -195,8 +212,12 @@ const responder = async (dud: any) => {
             throw new Error('Error al responder');
         }
 
-        const dudaActualizada = await res.json();
-        dud.respuestas = dudaActualizada.respuestas;
+        dud.respuestas.push({
+            autor: usuario.value?.username || 'usuario',
+            conte: dud.nuevaRespues,
+            fecha: new Date().toISOString()
+        });
+
         dud.nuevaRespues = '';
         dud.mostrarRespuesta = false;
     } catch (error) {

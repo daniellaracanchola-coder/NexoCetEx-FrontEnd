@@ -117,6 +117,19 @@
     const mensaje = ref('');
     
     const registrar = async () => {
+        if (!username.value || !password.value || !rol.value) {
+            mensaje.value = 'Completa usuario, contraseña y rol';
+            return;
+        }
+
+        if (rol.value === 'alumno' && (!grado.value || !grupo.value)) {
+            mensaje.value = ' Grado y grupo son obligatorios para alumnos';
+            return;
+        }
+
+        const gradoEnviar = rol.value === 'alumno' ? grado.value : null;
+        const grupoEnviar = rol.value === 'alumno' ? grupo.value : null;
+
         try {
             const res = await fetch(
                 'http://192.168.1.80:3000/auth/registro',
@@ -129,8 +142,8 @@
                         username: username.value,
                         password: password.value,
                         rol: rol.value,
-                        grado: grado.value,
-                        grupo: grupo.value
+                        grado: gradoEnviar,
+                        grupo: grupoEnviar
                     })
                 }
             );
@@ -139,12 +152,11 @@
             mensaje.value = data.mensaje;
 
             if (res.ok) {
-                router.push('/');
+                router.push('/login');
             }
         } catch (error) {
             console.error(error);
-            mensaje.value=
-                'Error al conectar con el servidor';
+            mensaje.value= 'Error al conectar con el servidor';
         }
     };
 

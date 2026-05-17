@@ -135,7 +135,7 @@
                         </ion-select-option>
                     </ion-select>
                     <ion-button 
-                        v-if="usuario.id !== usuariosActual.id"
+                        v-if="usuario.id !== usuarioActual.id"
                         expand="block"
                         color="danger"
                         class="input-space" 

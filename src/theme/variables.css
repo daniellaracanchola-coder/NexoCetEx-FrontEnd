@@ -1,18 +1,245 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
-body {
-    --ion-background-color: #ebebebd1;
+body.tema-default .avisos {
+    --background: #ebebebd1;
+    color: #000000;
 }
 
-.login-bg {
+body.tema-default .login-bg {
     --background: #b5eae2;
 }
-.group {
+
+body.tema-default .group {
     --background: #6d5978;
 }
-.conf {
+
+body.tema-default .conf {
     --background: #d8dab3;
 }
-.nexoA {
+
+body.tema-default .nexoA {
     --background: #adacac;
+}
+
+body.tema-default .ion-padding {
+    --background: #ceba87;
+}
+
+body.tema-default ion-toolbar,
+body.tema-default ion-menu,
+body.tema-default ion-item,
+body.tema-default ion-card,
+body.tema-default ion-card-title,
+body.tema-default ion-card-content,
+body.tema-default ion-input,
+body.tema-default ion-select,
+body.tema-default ion-textarea {
+    --background: #82c67bce;
+    --color: #000000;
+    color: #000000;
+}
+
+body.tema-default #container,
+body.tema-default #container p,
+body.tema-default #container strong {
+    color: #000000;
+}
+
+body.tema-claro .login-bg,
+body.tema-claro .group,
+body.tema-claro .conf,
+body.tema-claro .nexoA,
+body.tema-claro .avisos,
+body.tema-claro .ion-padding {
+    --background: #f5f5f5ce;
+    color: #000000;
+}
+
+body.tema-claro ion-toolbar,
+body.tema-claro ion-menu,
+body.tema-claro ion-item,
+body.tema-claro ion-card,
+body.tema-claro ion-card-header,
+body.tema-claro ion-card-content,
+body.tema-claro ion-card-title,
+body.tema-claro ion-input,
+body.tema-claro ion-select,
+body.tema-claro ion-textarea,
+body.tema-claro ion-list {
+    --background: #8be6ffe2;
+    --color: #000000;
+    color: #000000;
+}
+
+body.tema-claro h1,
+body.tema-claro h2,
+body.tema-claro h3,
+body.tema-claro p,
+body.tema-claro strong,
+body.tema-claro small,
+body.tema-claro ion-label,
+body.tema-claro #container,
+body.tema-claro #container p,
+body.tema-claro #container strong {
+    color: #000000;
+}
+
+body.tema-oscuro .login-bg,
+body.tema-oscuro .group,
+body.tema-oscuro .conf,
+body.tema-oscuro .nexoA,
+body.tema-oscuro .avisos,
+body.tema-oscuro .ion-padding {
+    --background: #140121;
+    color: #ffffff;
+}
+
+body.tema-oscuro ion-toolbar,
+body.tema-oscuro ion-menu,
+body.tema-oscuro ion-item,
+body.tema-oscuro ion-card,
+body.tema-oscuro ion-card-header,
+body.tema-oscuro ion-card-content,
+body.tema-oscuro ion-card-title,
+body.tema-oscuro ion-input,
+body.tema-oscuro ion-select,
+body.tema-oscuro ion-textarea,
+body.tema-oscuro ion-list {
+    --background: #002e32;
+    --color: #ffffff;
+    color: #ffffff;
+}
+
+body.tema-oscuro h1,
+body.tema-oscuro h2,
+body.tema-oscuro h3,
+body.tema-oscuro p,
+body.tema-oscuro strong,
+body.tema-oscuro small,
+body.tema-oscuro ion-label,
+body.tema-oscuro #container,
+body.tema-oscuro #container p,
+body.tema-oscuro #container strong {
+    color: #ffffff !important;
+}
+
+body.alto-contraste .login-bg,
+body.alto-contraste .group,
+body.alto-contraste .conf,
+body.alto-contraste .nexoA,
+body.alto-contraste .avisos,
+body.alto-contraste .ion-padding {
+    --background: #000000 !important;
+    color: #ffffff !important;
+}
+
+body.alto-contraste ion-toolbar,
+body.alto-contraste ion-menu,
+body.alto-contraste ion-item,
+body.alto-contraste ion-card,
+body.alto-contraste ion-card-header,
+body.alto-contraste ion-card-content,
+body.alto-contraste ion-card-title,
+body.alto-contraste ion-card-subtitle,
+body.alto-contraste ion-input,
+body.alto-contraste ion-select,
+body.alto-contraste ion-textarea,
+body.alto-contraste ion-list {
+    --background: #000000 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+body.alto-contraste h1,
+body.alto-contraste h2,
+body.alto-contraste h3,
+body.alto-contraste p,
+body.alto-contraste strong,
+body.alto-contraste small,
+body.alto-contraste ion-label,
+body.alto-contraste #container,
+body.alto-contraste #container p,
+body.alto-contraste #container strong {
+    color: #ffffff !important;
+}
+
+body.alto-contraste ion-card {
+    border: 2px solid #ffffff !important;
+}
+
+body.texto-normal,
+body.texto-normal ion-content,
+body.texto-normal ion-card,
+body.texto-normal ion-input,
+body.texto-normal ion-select,
+body.texto-normal ion-textarea,
+body.texto-normal ion-button,
+body.texto-normal ion-menu,
+body.texto-normal p,
+body.texto-normal h3,
+body.texto-normal h2,
+body.texto-normal ion-content-title
+body.texto-normal ion-card-title
+body.texto-normal .lateral {
+    font-size: 16px;
+}
+
+body.texto-grande,
+body.texto-grande ion-content,
+body.texto-grande ion-card,
+body.texto-grande ion-input,
+body.texto-grande ion-select,
+body.texto-grande ion-textarea,
+body.texto-grande ion-button,
+body.texto-grande ion-menu,
+body.texto-grande p,
+body.texto-grande h3,
+body.texto-grande h2,
+body.texto-grande ion-content-title
+body.texto-grande ion-card-title
+body.texto-grande .lateral {
+    font-size: 19px;
+}
+
+body.texto-grande ion-card-title,
+body.texto-grande ion-card-content,
+body.texto-grande ion-card-content *,
+body.texto-grande ion-badge,
+body.texto-grande ion-label,
+body.texto-grande h2,
+body.texto-grande h3 {
+    font-size: 19px !important;
+}
+
+body.texto-muy-grande,
+body.texto-muy-grande ion-content,
+body.texto-muy-grande ion-card,
+body.texto-muy-grande ion-input,
+body.texto-muy-grande ion-select,
+body.texto-muy-grande ion-textarea,
+body.texto-muy-grande ion-button,
+body.texto-muy-grande ion-menu,
+body.texto-muy-grande p,
+body.texto-muy-grande h3,
+body.texto-muy-grande h2,
+body.texto-muy-grande ion-content-title
+body.texto-muy-grande ion-card-title
+body.texto-muy-grande .lateral {
+    font-size: 22px;
+}
+body.texto-muy-grande ion-card-title,
+body.texto-muy-grande ion-card-content,
+body.texto-muy-grande ion-card-content *,
+body.texto-muy-grande ion-badge,
+body.texto-muy-grande ion-label,
+body.texto-muy-grande h2,
+body.texto-muy-grande h3 {
+    font-size: 22px !important;
+}
+
+body.texto-grande ion-button::part(native) {
+    font-size: 19px !important;
+}
+
+body.texto-muy-grande ion-button::part(native) {
+    font-size: 22px !important;
 }
