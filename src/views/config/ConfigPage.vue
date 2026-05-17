@@ -92,43 +92,16 @@ import {
 
 import { ref, watch, onMounted } from 'vue';
 
+import {
+    aplicarConfiguracion,
+} from '@/services/configuracion';
+
 const tema = ref('sistema');
 const tamanoLetra = ref('normal');
 const altoContraste = ref(false);
 const notificaciones = ref(true); 
 
 const token = localStorage.getItem('token');
-
-const aplicarConfiguracion = () => {
-    document.body.classList.remove(
-        'tema-default',
-        'tema-claro',
-        'tema-oscuro',
-        'texto-normal',
-        'texto-grande',
-        'texto-muy-grande',
-        'alto-contraste'
-    );
-
-    if (tema.value === 'sistema') {
-        document.body.classList.add('tema-default');
-    }
-
-    if (tema.value === 'claro') {
-        document.body.classList.add('tema-claro');
-    }
-
-    if (tema.value === 'oscuro') {
-        document.body.classList.add('tema-oscuro');
-    }
-
-    document.body.classList.add(`texto-${tamanoLetra.value}`);
-
-    if (altoContraste.value) {
-        document.body.classList.add('alto-contraste');
-    }
-};
-
 
 const cargarConfiguracion = async () => {
     try {
@@ -148,7 +121,11 @@ const cargarConfiguracion = async () => {
         altoContraste.value = Boolean(config.alto_contraste);
         notificaciones.value = Boolean(config.notificaciones);
 
-        aplicarConfiguracion();
+        aplicarConfiguracion({
+            tema: tema.value,
+            tamano_letra: tamanoLetra.value,
+            alto_contraste: altoContraste.value
+        });
     } catch (error) {
         console.error(error);
     }
@@ -184,10 +161,12 @@ onMounted(() => {
 watch(
     [tema, tamanoLetra, altoContraste, notificaciones],
     () => {
-        aplicarConfiguracion();
+        aplicarConfiguracion({
+            tema: tema.value,
+            tamano_letra: tamanoLetra.value,
+            alto_contraste: altoContraste.value
+        });
         guardarConfiguracion();
     }
 );
-
-
 </script>

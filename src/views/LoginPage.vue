@@ -64,6 +64,7 @@ import {
 
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { iniciarNotificacionesPush } from '@/services/pushNotification';
 
 const router = useRouter();
 
@@ -113,6 +114,8 @@ const login = async () => {
         'token',
         data.token
     );
+
+    await iniciarNotificacionesPush();
 
     errorMensaje.value = '';
     router.push('/home');

@@ -17,58 +17,66 @@
 
     <ion-content class="group">
         <h2>Grupos</h2>
-        <ion-input
-            v-model="busqueda"
-            placeholder="Buscar usuario"
-            fill="outline"
-            class="buscador"
-            @ionInput="buscarUsuarios">
-        </ion-input>
+        <ion-accordion-group>
+            <ion-accordion value="grupos">
+                <ion-item slot="header">
+                    <ion-label>Crear chats</ion-label>
+                </ion-item>
+                <div slot="content">
+                    <ion-input
+                        v-model="busqueda"
+                        placeholder="Buscar usuario"
+                        fill="outline"
+                        class="buscador"
+                        @ionInput="buscarUsuarios">
+                    </ion-input>
 
-        <ion-input
-            v-model="nombreGrupo"
-            placeholder="Nombre del grupo"
-            fill="outline"
-            class="buscador">
-        </ion-input>
+                    <ion-input
+                        v-model="nombreGrupo"
+                        placeholder="Nombre del grupo"
+                        fill="outline"
+                        class="buscador">
+                    </ion-input>
 
-        <ion-button
-            expand="block"
-            @click="crearGrupo">
-            Crear grupo con usuarios seleccionados
-        </ion-button>
+                    <ion-button
+                        expand="block"
+                        @click="crearGrupo">
+                        Crear grupo con usuarios seleccionados
+                    </ion-button>
 
-        <p style="text-align:center;">
-            Usuarios seleccionados:
-            {{ usuariosSeleccionados.length }}
-        </p> 
+                    <p style="text-align:center;">
+                        Usuarios seleccionados:
+                        {{ usuariosSeleccionados.length }}
+                    </p> 
 
-        <ion-card
-            v-for="user in usuariosEncontrados"
-            :key="user.id">
-            <ion-card-content>
-                <p> {{ user.username }}</p>
-                <p> Rol: {{ user.rol }}</p>
+                    <ion-card
+                        v-for="user in usuariosEncontrados"
+                        :key="user.id">
+                        <ion-card-content>
+                            <p> {{ user.username }}</p>
+                            <p> Rol: {{ user.rol }}</p>
 
-                <ion-button
-                    expand="block"
-                    @click="crearChatDirecto(user.id)">
-                    Crear chat directo 
-                </ion-button>
-
-                <ion-button
-                    expand="block"
-                    color="medium"
-                    @click="seleccionarUsuario(user.id)">
-                    {{
-                        usuariosSeleccionados.includes(user.id)
-                            ? 'Quitar del grupo'
-                            : 'Agregar al grupo'
-                    }}
-                </ion-button>
-            </ion-card-content>
-        </ion-card>
-
+                            <ion-button
+                                expand="block"
+                                @click="crearChatDirecto(user.id)">
+                                Crear chat directo 
+                            </ion-button>
+                            <ion-button
+                                expand="block"
+                                color="medium"
+                                @click="seleccionarUsuario(user.id)">
+                                {{
+                                    usuariosSeleccionados.includes(user.id)
+                                        ? 'Quitar del grupo'
+                                        : 'Agregar al grupo'
+                                }}
+                            </ion-button>
+                        </ion-card-content>
+                    </ion-card>
+                </div>
+            </ion-accordion>
+        </ion-accordion-group>
+                    
         <h2>Mis chats</h2>
 
         <ion-card
@@ -112,7 +120,9 @@ import {
   IonCard,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent
+  IonCardContent,
+  IonAccordion,
+  IonAccordionGroup
 } from '@ionic/vue';
 
 import {

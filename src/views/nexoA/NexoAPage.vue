@@ -142,7 +142,7 @@ const cargarDudas = async () => {
             throw new Error('Error en el servidor');
         }
         const data = await res.json();
-        dudas.value = data.map(d => ({
+        dudas.value = data.map((d: any) => ({
             ...d,
             mostrarRespuesta: false,
             nuevaRespues: ''

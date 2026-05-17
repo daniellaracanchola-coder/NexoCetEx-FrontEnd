@@ -1,9 +1,17 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.nexocetex.express',
   appName: 'nexo-ceti-express',
-  webDir: 'dist'
+  webDir: 'dist',
+  server: {
+    cleartext: true
+  },
+  plugins: {
+    CapacitorHttp: {
+      enabled: true
+    }
+  }
 };
 
 export default config;
