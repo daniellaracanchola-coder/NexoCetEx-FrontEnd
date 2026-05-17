@@ -8,6 +8,7 @@ import ConfigPage from '../views/config/ConfigPage.vue';
 import NexoAPage from '../views/nexoA/NexoAPage.vue';
 import RegistroPage from '../views/RegistroPage.vue';
 import AdministracionPage from '../views/admin/AdministracionPage.vue';
+import ChatPage from '../views/grupos/ChatPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -51,6 +52,11 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
         requiresAdmin: true
     }
+  },
+  {
+    path: '/chat/:id',
+    name: 'Chat',
+    component: ChatPage
   }
 
 ];

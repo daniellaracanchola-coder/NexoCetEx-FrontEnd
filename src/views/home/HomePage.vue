@@ -1,7 +1,7 @@
 <template> 
   <ion-page> 
     <ion-header :translucent="true"> 
-      <ion-toolbar style="--background: beige;"> 
+      <ion-toolbar style="--background: beige; --color: #000000;"> 
         <ion-buttons slot="start"> 
           <ion-menu-button></ion-menu-button> 
         </ion-buttons> 

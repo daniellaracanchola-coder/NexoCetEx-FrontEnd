@@ -10,14 +10,90 @@
                 </ion-title>
             </ion-toolbar>
         </ion-header>
-
+        
         <ion-content class="ion-padding">
-            <p v-if="usuarios.length === 0">
-                No hay usuarios pendientes
+            <ion-button @click="seccion = 'pendientes'">
+                Pendientes
+            </ion-button>
+
+            <ion-button @click="seccion = 'usuarios'">
+                Usuarios Actuales
+            </ion-button>
+
+            <div v-if="seccion === 'pendientes'">
+                <p v-if="usuariosPendientes.length === 0">
+                    No hay usuarios pendientes
+                </p>
+
+                <ion-card
+                    v-for="usuario in usuariosPendientes"
+                    :key="usuario.id">
+
+                    <ion-card-header>
+                        <ion-card-title>
+                            {{ usuario.username }}
+                        </ion-card-title>
+                    </ion-card-header>
+                
+                <ion-card-content>
+                    <p>
+                        Rol: {{ usuario.rol }}
+                    </p>
+
+                    <p v-if="usuario.grado">
+                        Grado: {{ usuario.grado }}
+                    </p>
+
+                    <p v-if="usuario.grupo">
+                        Grupo: {{ usuario.grupo }}
+                    </p>
+
+                    <ion-select
+                        label="Cambiar rol"
+                        placeholder="Selecciona nuevo rol"
+                        fill="outline"
+                        class="input-space"
+                        @ionChange="cambiarRol(usuario.id, $event.detail.value)">
+                        
+                        <ion-select-option value="alumno">
+                            Alumno
+                        </ion-select-option>
+
+                        <ion-select-option value="profesor">
+                            Profesor
+                        </ion-select-option>
+
+                        <ion-select-option value="admin">
+                            Admin
+                        </ion-select-option>
+                    </ion-select>
+
+                    <ion-button
+                        expand="block"
+                        color="success"
+                        class="input-space"
+                        @click="aprobar(usuario.id)">
+                        Aprobar
+                    </ion-button>
+
+                    <ion-button
+                        expand="block"
+                        color="danger"
+                        class="input-space"
+                        @click="rechazar(usuario.id)">
+                        Rechazar
+                    </ion-button>    
+                </ion-card-content>
+            </ion-card>
+        </div>
+
+        <div v-if="seccion === 'usuarios'">
+            <p v-if="usuariosActuales.length === 0">
+                No hay usuarios actualmente
             </p>
 
             <ion-card
-                v-for="usuario in usuarios"
+                v-for="usuario in usuariosActuales"
                 :key="usuario.id">
 
                 <ion-card-header>
@@ -39,33 +115,12 @@
                         Grupo: {{ usuario.grupo }}
                     </p>
 
-                    <ion-button
-                        expand="block"
-                        color="success"
-                        class="input-space"
-                        @click="aprobar(usuario.id)">
-                        Aprobar
-                    </ion-button>
-
-                    <ion-button
-                        expand="block"
-                        color="danger"
-                        class="input-space"
-                        @click="rechazar(usuario.id)">
-                        Rechazar
-                    </ion-button>
-
                     <ion-select
                         label="Cambiar rol"
                         placeholder="Selecciona nuevo rol"
                         fill="outline"
                         class="input-space"
-                        @ionChange="
-                            cambiarRol(
-                                usuario.id,
-                                $event.detail.value
-                            )
-                        ">
+                        @ionChange="cambiarRol(usuario.id, $event.detail.value)">
 
                         <ion-select-option value="alumno">
                             Alumno
@@ -79,9 +134,17 @@
                             Admin
                         </ion-select-option>
                     </ion-select>
-
-                </ion-card-content>
-            </ion-card>
+                    <ion-button 
+                        v-if="usuario.id !== usuariosActual.id"
+                        expand="block"
+                        color="danger"
+                        class="input-space" 
+                        @click="darBaja(usuario.id)">
+                            Dar de baja
+                        </ion-button>
+                    </ion-card-content>
+                </ion-card>
+            </div>
         </ion-content>
     </ion-page>
 </template>
@@ -99,30 +162,17 @@ import {
     IonCardContent,
     IonButton,
     IonSelect,
-    IonSelectOption
+    IonSelectOption,
+    IonButtons,
+    IonMenuButton
 } from '@ionic/vue';
 
 import { ref, onMounted } from 'vue';
 
-const usuarios = ref<any[]>([]);
 const token = localStorage.getItem('token');
-
-const cargarUsuarios = async () => {
-    try {
-        const res = await fetch(
-            'http://192.168.1.80:3000/admin/pendientes',
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-
-        usuarios.value = await res.json();
-    } catch (error) {
-        console.error(error);
-    }
-};
+const usuarioActual = JSON.parse(
+    localStorage.getItem('usuario') || '{}'
+);
 
 const aprobar = async (id: number) => {
     try {
@@ -136,7 +186,8 @@ const aprobar = async (id: number) => {
             }
             
         );
-        cargarUsuarios();
+        cargarPendientes();
+        cargarUsuariosActuales();
     } catch (error) {
         console.error(error);
     }
@@ -154,7 +205,8 @@ const rechazar = async (id: number) => {
             }
             
         );
-        cargarUsuarios();
+        cargarPendientes();
+        cargarUsuariosActuales();
     } catch (error) {
         console.error(error);
     }
@@ -179,15 +231,62 @@ const cambiarRol = async (
             }
         );
 
-        cargarUsuarios();
+        cargarPendientes();
+        cargarUsuariosActuales();
     } catch (error) {
         console.error(error);
     }
 };
 
 onMounted(() => {
-    cargarUsuarios();
+    cargarPendientes();
+    cargarUsuariosActuales();
 });
+
+const usuariosPendientes = ref<any[]>([]);
+const usuariosActuales = ref<any[]>([]);
+const seccion = ref('pendientes');
+
+const cargarPendientes = async () => {
+    const res = await fetch(
+        'http://192.168.1.80:3000/admin/pendientes',
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    usuariosPendientes.value = await res.json();
+};
+
+const darBaja = async (id: number) => {
+    await fetch(
+        `http://192.168.1.80:3000/admin/baja/${id}`,
+        {
+            method: 'PUT',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    cargarUsuariosActuales();
+}
+
+const cargarUsuariosActuales = async () => {
+    const res = await fetch(
+        'http://192.168.1.80:3000/admin/usuarios',
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    usuariosActuales.value = await res.json();
+};
+
 </script>
 
 <style scoped>
