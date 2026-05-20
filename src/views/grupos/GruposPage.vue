@@ -72,21 +72,37 @@
             :key="chat.id"
             button
             class="chat-list-card"
+            :class="{ 'chat-list-card--unread': chat.mensajesNoLeidos > 0 }"
             @click="entrarChat(chat.id)">
             <ion-card-header>
-                <ion-card-title>
-                    {{ chat.nombreMostrar || chat.nombre || 'Chat' }}
+                <ion-card-title class="chat-list-title-row">
+                    <span>{{ chat.nombreMostrar || chat.nombre || 'Chat' }}</span>
+                    <ion-badge
+                        v-if="chat.mensajesNoLeidos > 0"
+                        color="danger"
+                        class="chat-unread-badge"
+                    >
+                        {{ chat.mensajesNoLeidos }}
+                    </ion-badge>
                 </ion-card-title>
             </ion-card-header>
 
             <ion-card-content>
-                <p class="chat-list-meta">Tipo: {{ chat.tipo }}</p>
-
-                <p v-if="chat.grado && chat.grupo" class="chat-list-meta">
-                    Grupo: {{ chat.grado }}{{ chat.grupo }}
+                <p
+                    v-if="chat.ultimoMensajePreview"
+                    class="chat-list-preview"
+                    :class="{ 'chat-list-preview--unread': chat.mensajesNoLeidos > 0 }"
+                >
+                    {{ chat.ultimoMensajePreview }}
+                </p>
+                <p v-else class="chat-list-preview chat-list-preview--empty">
+                    Sin mensajes aún
                 </p>
 
-                <p class="chat-list-hint">Toca para abrir el chat</p>
+                <p v-if="chat.ultimoMensajeFecha" class="chat-list-meta">
+                    {{ formatearFechaRelativa(chat.ultimoMensajeFecha) }}
+                </p>
+                <p v-else class="chat-list-meta">Tipo: {{ chat.tipo }}</p>
             </ion-card-content>
         </ion-card>
     </ion-content>
@@ -107,15 +123,17 @@ import {
   IonAccordion,
   IonAccordionGroup,
   IonLabel,
+  IonBadge,
 } from '@ionic/vue';
 
 import {
     ref,
     onMounted,
-    onUnmounted
+    onUnmounted,
 } from 'vue';
 
 import { useRouter } from 'vue-router';
+import { onIonViewWillEnter } from '@ionic/vue';
 import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
 
@@ -123,6 +141,25 @@ const router = useRouter();
 
 const entrarChat = (chatId: number) => {
   router.push(`/chat/${chatId}`);
+};
+
+const formatearFechaRelativa = (fecha: string) => {
+  if (!fecha) return '';
+  const d = new Date(fecha);
+  const ahora = new Date();
+  const mismoDia =
+    d.getDate() === ahora.getDate() &&
+    d.getMonth() === ahora.getMonth() &&
+    d.getFullYear() === ahora.getFullYear();
+  if (mismoDia) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  return d.toLocaleString([], {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 const token = localStorage.getItem('token');
@@ -219,10 +256,11 @@ const crearChatDirecto = async (usuarioDestinoId: number) =>  {
 onMounted(async () => {
     await crearGrupoAula();
     await cargarChats();
+    intervalGrupos = setInterval(() => cargarChats(), 4000);
+});
 
-    intervalGrupos = setInterval(() => {
-        cargarChats();    
-    }, 5000);
+onIonViewWillEnter(() => {
+    cargarChats();
 });
 
 onUnmounted(() => {

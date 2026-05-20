@@ -465,22 +465,106 @@ ion-toolbar {
   margin-bottom: 10px;
 }
 
+.chat-list-card--unread {
+  border-left: 4px solid var(--ion-color-primary);
+  background: var(--nexo-accent-soft);
+}
+
 .chat-list-card:active {
   transform: scale(0.98);
   opacity: 0.92;
 }
 
+.chat-list-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chat-unread-badge {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.chat-list-preview {
+  margin: 4px 0 2px;
+  font-size: 0.9rem;
+  color: var(--nexo-text-muted);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.chat-list-preview--unread {
+  color: var(--nexo-text);
+  font-weight: 600;
+}
+
+.chat-list-preview--empty {
+  font-style: italic;
+  font-weight: 400;
+}
+
 .chat-list-meta {
   margin: 4px 0;
   color: var(--nexo-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
-.chat-list-hint {
-  margin: 8px 0 0;
-  font-size: 0.75rem;
+/* Vista de mensajes */
+.chat-messages-content {
+  --padding-bottom: 12px;
+}
+
+.chat-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.chat-scroll-anchor {
+  height: 1px;
+  width: 100%;
+}
+
+.chat-bubble {
+  max-width: 92%;
+  padding: 10px 14px;
+  border-radius: var(--nexo-radius);
+  background: var(--nexo-surface);
+  border: 1px solid var(--nexo-border);
+  align-self: flex-start;
+}
+
+.chat-bubble--propio {
+  align-self: flex-end;
+  background: var(--nexo-accent-soft);
+  border-color: var(--ion-color-primary);
+}
+
+body.tema-extra .chat-bubble--propio {
+  background: var(--nexo-bubble-out, #dcf8c6);
+}
+
+.chat-bubble strong {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
   color: var(--ion-color-primary);
-  font-weight: 600;
+}
+
+.chat-bubble p {
+  margin: 0 0 6px;
+  word-break: break-word;
+}
+
+.chat-bubble small {
+  color: var(--nexo-text-muted);
+  font-size: 0.7rem;
 }
 
 /* Nexo Ayuda */
