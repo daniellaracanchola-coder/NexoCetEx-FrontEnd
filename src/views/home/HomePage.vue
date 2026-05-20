@@ -1,18 +1,7 @@
 <template> 
   <ion-page> 
     <ion-header :translucent="true"> 
-      <ion-toolbar>
-        <ion-buttons slot="start"> 
-          <ion-menu-button></ion-menu-button> 
-        </ion-buttons> 
-        <div style="display: flex; align-items: center;">
-          <ion-title> 
-            <img src="@/assets/AppLogo.png" style="height:40px; margin-right:8px;"> 
-            Muro Inicial
-          </ion-title> 
-          <p style="margin: 0;"> NEXO CETI EXPRESS </p>
-        </div>
-      </ion-toolbar> 
+      <AppPageHeader title="Muro" /> 
     </ion-header> 
 
     <ion-content :fullscreen="true" class="avisos"> 
@@ -22,15 +11,22 @@
         </ion-toolbar> 
       </ion-header> 
       
-      <div id="container">  
-        <p> En esta seccion se veran los anuncios, <strong>Es necesario que se marquen como vistos </strong> </p>
-        <p> Esto para garantizar que llego la informacion. </p>
-        <img src="@/assets/Avisos.png" style="height:60px; margin-right:20px; display:block; margin: 0 auto;">
-      </div> 
+      <div id="container">
+        <p class="page-intro">
+          En esta sección verás los anuncios.
+          <strong> Es necesario marcarlos como vistos </strong>
+          para confirmar que recibiste la información.
+        </p>
+        <img
+          src="@/assets/Avisos.png"
+          alt="Avisos"
+          style="height: 56px; display: block; margin: 12px auto;"
+        />
+      </div>
       <div>
-        <ion-button expand="block" v-if="usuario?.rol === 'admin' || usuario?.rol === 'profesor'" @click="abrirMFun">
-          Crear anuncios
-        </ion-button>
+        <div class="btn-solo" v-if="usuario?.rol === 'admin' || usuario?.rol === 'profesor'">
+          <ion-button @click="abrirMFun">Crear anuncios</ion-button>
+        </div>
         <ion-modal :is-open="abrirM">
           <ion-header>
             <ion-toolbar>
@@ -60,33 +56,23 @@
               </ion-select>
             </ion-item>
 
-            <ion-button expand="block" @click="guardarA">
-              Publicar
-            </ion-button>
-
-            <ion-button expand="block" color="medium" @click="abrirM = false">
-              Cancelar
-            </ion-button>
-            <p v-if="errorA" style="color:red;">
-              {{ errorA }}
-            </p>
+            <div class="btn-group btn-group--modal">
+              <ion-button @click="guardarA">Publicar</ion-button>
+              <ion-button color="medium" @click="abrirM = false">Cancelar</ion-button>
+            </div>
+            <p v-if="errorA" class="error-text">{{ errorA }}</p>
           </ion-content>
         </ion-modal>
 
         <ion-card 
-          v-for="anuncio in filtro" 
-          :key="anuncio.id"
-          :style="{
-          opacity: anuncio.vistosPor?.includes(usuario?.username) ? 0.5 : 1,
-
-          backgroundColor: anuncio.tipo === 'importante'
-            ? '#ffebee'
-            : (!anuncio.vistosPor?.includes(usuario?.username) ? '#fff3e0' : '#fff'),
-
-          border: anuncio.tipo === 'importante'
-            ? '2px solid red'
-            : '1px solid #ddd'
-          }">
+            v-for="anuncio in filtro" 
+            :key="anuncio.id"
+            :class="{
+                'aviso-importante': anuncio.tipo === 'importante',
+                'aviso-no-leido': !anuncio.vistosPor?.includes(usuario?.username),
+                'aviso-leido': anuncio.vistosPor?.includes(usuario?.username)
+            }"
+            >
 
           <ion-card-header>
             <ion-card-title>
@@ -128,33 +114,34 @@
               </ion-badge>
             </div>
 
-            <p v-if="anuncio.fecha" style="font-size: 12px; color: gray;">
-              {{new Date(anuncio.fecha).toLocaleString() }}
+            <p v-if="anuncio.fecha" class="muted-text">
+              {{ new Date(anuncio.fecha).toLocaleString() }}
             </p>
 
           </ion-card-content>
 
-          
-          <ion-button
-            color="danger"
-            v-if="usuario?.rol === 'admin' || 
-            (usuario?.rol === 'profesor' && anuncio.autor === usuario?.username)"
-            @click="eliminarAnun(anuncio.id)">
-            Eliminar 
-          </ion-button>
+          <div class="btn-group btn-group--card">
+            <ion-button
+              color="danger"
+              v-if="usuario?.rol === 'admin' ||
+              (usuario?.rol === 'profesor' && anuncio.autor === usuario?.username)"
+              @click="eliminarAnun(anuncio.id)">
+              Eliminar
+            </ion-button>
 
-          <ion-button
-            v-if="!anuncio.vistosPor?.includes(usuario?.username)"
-            @click="anunLeido(anuncio)">
-            Marcar como leido
-          </ion-button>
+            <ion-button
+              v-if="!anuncio.vistosPor?.includes(usuario?.username)"
+              @click="anunLeido(anuncio)">
+              Marcar como leido
+            </ion-button>
 
-          <ion-button 
-          v-if="usuario?.rol === 'admin' ||
-          (usuario?.rol === 'profesor' && anuncio.autor === usuario?.username)"
-          @click="cambiarTipo(anuncio)">
-          {{ anuncio.tipo === 'importante' ? 'Quitar importancia' : 'Marcar importante' }}
-          </ion-button>
+            <ion-button
+              v-if="usuario?.rol === 'admin' ||
+              (usuario?.rol === 'profesor' && anuncio.autor === usuario?.username)"
+              @click="cambiarTipo(anuncio)">
+              {{ anuncio.tipo === 'importante' ? 'Quitar importancia' : 'Marcar importante' }}
+            </ion-button>
+          </div>
 
         </ion-card>
       </div>
@@ -169,7 +156,6 @@ import {
   IonPage, 
   IonTitle, 
   IonToolbar, 
-  IonButtons, 
   IonModal,
   IonInput,
   IonTextarea,
@@ -179,7 +165,6 @@ import {
   IonCardContent,
   IonButton,
   IonBadge,
-  IonMenuButton, 
   IonItem,
   IonLabel,
   IonSelect,
@@ -188,6 +173,8 @@ import {
 
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { mostrarToast } from '@/services/feedback';
+import AppPageHeader from '@/components/AppPageHeader.vue';
 
 let intervalAvisos: any;
 
@@ -217,7 +204,7 @@ const guardarA = async () => {
 
     try {
         const res = await fetch(
-            'http://192.168.1.80:3000/avisos',
+            'https://backend-nexo.onrender.com/avisos',
             {
                 method: 'POST',
                 headers: {
@@ -247,6 +234,7 @@ const guardarA = async () => {
         rolDes.value = 'todos';
         errorA.value = '';
         abrirM.value = false;
+        await mostrarToast('Anuncio publicado', 'success');
     } catch (error) {
         console.error(error);
         errorA.value = 'Error al conectarse con el servidor';
@@ -255,8 +243,8 @@ const guardarA = async () => {
 
 const eliminarAnun = async (id: number) => {
   try {
-    await fetch(
-        `http://192.168.1.80:3000/avisos/${id}`,
+    const res = await fetch(
+        `https://backend-nexo.onrender.com/avisos/${id}`,
         {
             method: 'DELETE',
             headers: {
@@ -265,9 +253,16 @@ const eliminarAnun = async (id: number) => {
         }
     );
 
+    if (!res.ok) {
+      await mostrarToast('No se pudo eliminar el anuncio', 'danger');
+      return;
+    }
+
     await cargarAnun();
+    await mostrarToast('Anuncio eliminado', 'success');
   } catch (error) {
     console.error(error);
+    await mostrarToast('Error al eliminar', 'danger');
   }
 };
 
@@ -289,8 +284,8 @@ onUnmounted(() => {
 
 const anunLeido = async (anuncio: any) => {
     try {
-        await fetch(
-            `http://192.168.1.80:3000/avisos/${anuncio.id}/leido`,
+        const res = await fetch(
+            `https://backend-nexo.onrender.com/avisos/${anuncio.id}/leido`,
             {
                 method: 'POST',
                 headers: {
@@ -303,10 +298,16 @@ const anunLeido = async (anuncio: any) => {
             }
         );
 
-        await cargarAnun();
+        if (!res.ok) {
+            await mostrarToast('No se pudo marcar como leído', 'danger');
+            return;
+        }
 
+        await cargarAnun();
+        await mostrarToast('Marcado como leído', 'success');
     } catch (error) {
         console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
     }
 }; 
 
@@ -317,8 +318,8 @@ const abrirMFun = () => {
 
 const cambiarTipo = async (anuncio: any) => {
   try {
-    await fetch(
-        `http://192.168.1.80:3000/avisos/${anuncio.id}/tipo`,
+    const res = await fetch(
+        `https://backend-nexo.onrender.com/avisos/${anuncio.id}/tipo`,
         {
             method: 'PUT',
             headers: {
@@ -327,10 +328,16 @@ const cambiarTipo = async (anuncio: any) => {
         }
     );
 
-    await cargarAnun();
+    if (!res.ok) {
+      await mostrarToast('No se pudo actualizar la importancia', 'danger');
+      return;
+    }
 
+    await cargarAnun();
+    await mostrarToast('Importancia del anuncio actualizada', 'success');
   } catch (error) {
     console.error(error);
+    await mostrarToast('Error de conexión', 'danger');
   }
 };
 
@@ -345,7 +352,7 @@ const ordenarAnun = () => {
 const cargarAnun = async () => {
   try {
     const res = await fetch(
-        'http://192.168.1.80:3000/avisos',
+        'https://backend-nexo.onrender.com/avisos',
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -376,26 +383,3 @@ const filtro = computed(() => {
 
 </script>
   
-  <style scoped> 
-  #container {  
-    text-align: center;
-    margin-top: 20px;
-  } 
-    
-  #container strong { 
-    font-size: 20px; 
-    line-height: 26px; 
-  } 
-      
-  #container p { 
-    font-size: 16px; 
-    line-height: 22px; 
-    color: #000000; 
-    margin: 0; 
-  }     
-        
-  #container a { 
-    text-decoration: none; 
-    background: #44aa11
-  } 
-  </style>

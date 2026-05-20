@@ -31,7 +31,7 @@ export async function iniciarNotificacionesPush() {
 
       console.log('Usuario localStorage:', JSON.stringify(usuario, null, 2));
 
-      const respuesta = await fetch('http://10.0.2.2:3000/api/usuarios/guardar-token', {
+      const respuesta = await fetch('https://backend-nexo.onrender.com/api/usuarios/guardar-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,22 +1,13 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start"> 
-          <ion-menu-button></ion-menu-button> 
-        </ion-buttons> 
-        <div style="display: flex; align-items: center;">
-          <ion-title> 
-            <img src="@/assets/AppLogo.png" style="height:40px; margin-right:8px;"> 
-            Configuracion y Accesibilidad
-          </ion-title> 
-          <p style="margin: 0;"> NEXO CETI EXPRESS </p>
-        </div>
-      </ion-toolbar>
+      <AppPageHeader title="Configuración" />
     </ion-header>
 
     <ion-content class="conf">
-      <h2>Aqui puedes elegir y configurar detalles en la app</h2>
+      <p class="page-intro">
+        Aquí puedes elegir y configurar los detalles de la app.
+      </p>
       <ion-card>
         <ion-card-header>
             <ion-card-title>Apariencia</ion-card-title>
@@ -27,9 +18,10 @@
                 v-model="tema"
                 label="Tema"
                 fill="outline">
-                <ion-select-option value="sistema">Por defecto</ion-select-option>
-                <ion-select-option value="claro">Modo luz</ion-select-option>
+                <ion-select-option value="sistema">Según el sistema</ion-select-option>
+                <ion-select-option value="claro">Modo claro</ion-select-option>
                 <ion-select-option value="oscuro">Modo oscuro</ion-select-option>
+                <ion-select-option value="extra">Mensajería (extra)</ion-select-option>
             </ion-select>
         </ion-card-content>
       </ion-card>
@@ -67,6 +59,36 @@
                 Recibir notificaciones
             </ion-toggle>
         </ion-card-content>
+
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Cambiar contraseña</ion-card-title>
+            </ion-card-header>
+
+            <ion-card-content>
+                <ion-input
+                    v-model="passwordActual"
+                    type="password"
+                    placeholder="Contraseña actual"
+                    fill="outline">
+                </ion-input>
+
+                <ion-input
+                    v-model="passwordNueva"
+                    type="password"
+                    placeholder="Nueva contraseña"
+                    fill="outline">
+                </ion-input>
+
+                <div class="btn-solo">
+                  <ion-button @click="cambiarPassword">Cambiar contraseña</ion-button>
+                </div>
+
+                <p v-if="mensajePassword" class="error-text">
+                    {{ mensajePassword }}
+                </p>
+            </ion-card-content>
+        </ion-card>
       </ion-card>
     </ion-content>
   </ion-page>
@@ -76,37 +98,41 @@
 import {
   IonPage,
   IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
-  IonButtons,
-  IonMenuButton,
   IonCard,
   IonCardHeader,
   IonCardContent,
   IonSelect,
   IonSelectOption,
   IonToggle,
-  IonCardTitle
+  IonCardTitle,
+  IonInput,
+  IonButton
 } from '@ionic/vue';
 
 import { ref, watch, onMounted } from 'vue';
 
 import {
     aplicarConfiguracion,
+    normalizarTema,
+    type TemaPreferencia,
 } from '@/services/configuracion';
+import { mostrarToast } from '@/services/feedback';
+import AppPageHeader from '@/components/AppPageHeader.vue';
 
-const tema = ref('sistema');
+const tema = ref<TemaPreferencia>('sistema');
 const tamanoLetra = ref('normal');
 const altoContraste = ref(false);
 const notificaciones = ref(true); 
+
+const cargandoConfig = ref(true);
 
 const token = localStorage.getItem('token');
 
 const cargarConfiguracion = async () => {
     try {
         const res = await fetch(
-            'http://192.168.1.80:3000/config',
+            'https://backend-nexo.onrender.com/config',
             {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -116,7 +142,7 @@ const cargarConfiguracion = async () => {
 
         const config = await res.json();
 
-        tema.value = config.tema || 'sistema';
+        tema.value = normalizarTema(config.tema);
         tamanoLetra.value = config.tamano_letra || 'normal';
         altoContraste.value = Boolean(config.alto_contraste);
         notificaciones.value = Boolean(config.notificaciones);
@@ -129,12 +155,13 @@ const cargarConfiguracion = async () => {
     } catch (error) {
         console.error(error);
     }
+    cargandoConfig.value = false;
 };
 
 const guardarConfiguracion = async () => {
     try{
-        await fetch(
-            'http://192.168.1.80:3000/config',
+        const res = await fetch(
+            'https://backend-nexo.onrender.com/config',
             {
                 method: 'PUT',
                 headers: {
@@ -149,8 +176,53 @@ const guardarConfiguracion = async () => {
                 })
             }
         );
+        if (res.ok) {
+            await mostrarToast('Preferencias guardadas', 'success', 2000);
+        } else {
+            await mostrarToast('No se pudo guardar en el servidor', 'danger');
+        }
     } catch (error) {
         console.error(error);
+        await mostrarToast('Error al guardar la configuración', 'danger');
+    }
+};
+
+const passwordActual = ref('');
+const passwordNueva = ref('');
+const mensajePassword = ref('');
+
+const cambiarPassword = async () => {
+    try {
+        const res = await fetch(
+            'https://backend-nexo.onrender.com/config/cambiar-password',
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    passwordActual: passwordActual.value,
+                    passwordNueva: passwordNueva.value
+                })
+            }
+        );
+
+        const data = await res.json();
+
+        if (res.ok) {
+            mensajePassword.value = data.mensaje || 'Contraseña actualizada';
+            passwordActual.value = '';
+            passwordNueva.value = '';
+            await mostrarToast('Contraseña actualizada', 'success');
+        } else {
+            mensajePassword.value = data.mensaje || 'No se pudo cambiar la contraseña';
+            await mostrarToast(mensajePassword.value, 'danger');
+        }
+    } catch (error) {
+        console.error(error);
+        mensajePassword.value = 'Error al conectar con el servidor';
+        await mostrarToast(mensajePassword.value, 'danger');
     }
 };
 
@@ -166,7 +238,10 @@ watch(
             tamano_letra: tamanoLetra.value,
             alto_contraste: altoContraste.value
         });
-        guardarConfiguracion();
+        
+        if (!cargandoConfig.value) {
+            guardarConfiguracion();
+        }
     }
 );
 </script>

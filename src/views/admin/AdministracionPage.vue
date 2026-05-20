@@ -1,24 +1,23 @@
 <template>
     <ion-page>
         <ion-header>
-            <ion-toolbar>
-                <ion-buttons slot="start"> 
-                    <ion-menu-button></ion-menu-button> 
-                </ion-buttons> 
-                <ion-title>
-                    Administracion
-                </ion-title>
-            </ion-toolbar>
+            <AppPageHeader title="Administración" :show-logo="false" :show-brand="false" />
         </ion-header>
         
         <ion-content class="ion-padding">
-            <ion-button @click="seccion = 'pendientes'">
+            <div class="admin-tabs">
+            <ion-button
+                :fill="seccion === 'pendientes' ? 'solid' : 'outline'"
+                @click="seccion = 'pendientes'">
                 Pendientes
             </ion-button>
 
-            <ion-button @click="seccion = 'usuarios'">
-                Usuarios Actuales
+            <ion-button
+                :fill="seccion === 'usuarios' ? 'solid' : 'outline'"
+                @click="seccion = 'usuarios'">
+                Usuarios actuales
             </ion-button>
+            </div>
 
             <div v-if="seccion === 'pendientes'">
                 <p v-if="usuariosPendientes.length === 0">
@@ -68,21 +67,14 @@
                         </ion-select-option>
                     </ion-select>
 
-                    <ion-button
-                        expand="block"
-                        color="success"
-                        class="input-space"
-                        @click="aprobar(usuario.id)">
+                    <div class="btn-group btn-group--card">
+                      <ion-button color="success" @click="aprobar(usuario.id)">
                         Aprobar
-                    </ion-button>
-
-                    <ion-button
-                        expand="block"
-                        color="danger"
-                        class="input-space"
-                        @click="rechazar(usuario.id)">
+                      </ion-button>
+                      <ion-button color="danger" @click="rechazar(usuario.id)">
                         Rechazar
-                    </ion-button>    
+                      </ion-button>
+                    </div>    
                 </ion-card-content>
             </ion-card>
         </div>
@@ -134,14 +126,11 @@
                             Admin
                         </ion-select-option>
                     </ion-select>
-                    <ion-button 
-                        v-if="usuario.id !== usuarioActual.id"
-                        expand="block"
-                        color="danger"
-                        class="input-space" 
-                        @click="darBaja(usuario.id)">
-                            Dar de baja
-                        </ion-button>
+                    <div v-if="usuario.id !== usuarioActual.id" class="btn-solo">
+                      <ion-button color="danger" @click="darBaja(usuario.id)">
+                        Dar de baja
+                      </ion-button>
+                    </div>
                     </ion-card-content>
                 </ion-card>
             </div>
@@ -153,8 +142,6 @@
 import {
     IonPage,
     IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonCard,
     IonCardHeader,
@@ -163,11 +150,11 @@ import {
     IonButton,
     IonSelect,
     IonSelectOption,
-    IonButtons,
-    IonMenuButton
 } from '@ionic/vue';
 
 import { ref, onMounted } from 'vue';
+import { mostrarToast } from '@/services/feedback';
+import AppPageHeader from '@/components/AppPageHeader.vue';
 
 const token = localStorage.getItem('token');
 const usuarioActual = JSON.parse(
@@ -176,39 +163,49 @@ const usuarioActual = JSON.parse(
 
 const aprobar = async (id: number) => {
     try {
-        await fetch(
-            `http://192.168.1.80:3000/admin/aprobar/${id}`,
+        const res = await fetch(
+            `https://backend-nexo.onrender.com/admin/aprobar/${id}`,
             {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             }
-            
         );
-        cargarPendientes();
-        cargarUsuariosActuales();
+        if (!res.ok) {
+            await mostrarToast('No se pudo aprobar el usuario', 'danger');
+            return;
+        }
+        await cargarPendientes();
+        await cargarUsuariosActuales();
+        await mostrarToast('Usuario aprobado', 'success');
     } catch (error) {
         console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
     }
 };
 
 const rechazar = async (id: number) => {
     try {
-        await fetch(
-            `http://192.168.1.80:3000/admin/rechazar/${id}`,
+        const res = await fetch(
+            `https://backend-nexo.onrender.com/admin/rechazar/${id}`,
             {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             }
-            
         );
-        cargarPendientes();
-        cargarUsuariosActuales();
+        if (!res.ok) {
+            await mostrarToast('No se pudo rechazar la solicitud', 'danger');
+            return;
+        }
+        await cargarPendientes();
+        await cargarUsuariosActuales();
+        await mostrarToast('Solicitud rechazada', 'success');
     } catch (error) {
         console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
     }
 };
 
@@ -217,8 +214,8 @@ const cambiarRol = async (
     rol: string
 ) => {
     try {
-        await fetch(
-            `http://192.168.1.80:3000/admin/cambiar-rol/${id}`,
+        const res = await fetch(
+            `https://backend-nexo.onrender.com/admin/cambiar-rol/${id}`,
             {
                 method: 'PUT',
                 headers: {
@@ -231,10 +228,17 @@ const cambiarRol = async (
             }
         );
 
-        cargarPendientes();
-        cargarUsuariosActuales();
+        if (!res.ok) {
+            await mostrarToast('No se pudo cambiar el rol', 'danger');
+            return;
+        }
+
+        await cargarPendientes();
+        await cargarUsuariosActuales();
+        await mostrarToast('Rol actualizado', 'success');
     } catch (error) {
         console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
     }
 };
 
@@ -249,7 +253,7 @@ const seccion = ref('pendientes');
 
 const cargarPendientes = async () => {
     const res = await fetch(
-        'http://192.168.1.80:3000/admin/pendientes',
+        'https://backend-nexo.onrender.com/admin/pendientes',
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -261,22 +265,31 @@ const cargarPendientes = async () => {
 };
 
 const darBaja = async (id: number) => {
-    await fetch(
-        `http://192.168.1.80:3000/admin/baja/${id}`,
-        {
-            method: 'PUT',
-            headers: {
-                Authorization: `Bearer ${token}`
+    try {
+        const res = await fetch(
+            `https://backend-nexo.onrender.com/admin/baja/${id}`,
+            {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             }
+        );
+        if (!res.ok) {
+            await mostrarToast('No se pudo dar de baja al usuario', 'danger');
+            return;
         }
-    );
-
-    cargarUsuariosActuales();
-}
+        await cargarUsuariosActuales();
+        await mostrarToast('Usuario dado de baja', 'success');
+    } catch (error) {
+        console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
+    }
+};
 
 const cargarUsuariosActuales = async () => {
     const res = await fetch(
-        'http://192.168.1.80:3000/admin/usuarios',
+        'https://backend-nexo.onrender.com/admin/usuarios',
         {
             headers: {
                 Authorization: `Bearer ${token}`

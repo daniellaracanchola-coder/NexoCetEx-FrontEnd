@@ -1,14 +1,20 @@
 <template>
     <ion-page>
         <ion-header>
-            <ion-toolbar>
-                <ion-title>
-                    Registro de nuevo usuario
-                </ion-title>
-            </ion-toolbar>
+            <AppPageHeader
+                title="Registro de nuevo usuario"
+                :show-menu="false"
+                :show-logo="false"
+                :show-brand="false"
+                back-href="/login"
+            />
         </ion-header>
         
-        <ion-content class="ion-padding">
+        <ion-content class="ion-padding login-bg">
+            <p class="page-intro regist-info">
+                Cuando envíes el registro, un administrador debe <strong>aprobar tu cuenta</strong>
+                antes de que puedas iniciar sesión. Guarda tu usuario y contraseña para después.
+            </p>
 
             <ion-input
                 v-model="username"
@@ -78,12 +84,9 @@
                 </ion-select>
             </div>
 
-            <ion-button
-                expand="block"
-                class="input-space"
-                @click="registrar">
-                Crear cuenta
-            </ion-button>
+            <div class="form-actions">
+              <ion-button @click="registrar">Crear cuenta</ion-button>
+            </div>
 
             <p v-if="mensaje" class="mensaje">
                 {{ mensaje }}
@@ -96,17 +99,17 @@
     import{
         IonPage,
         IonHeader,
-        IonToolbar,
-        IonTitle,
         IonContent,
         IonInput,
         IonButton,
         IonSelect,
-        IonSelectOption
+        IonSelectOption,
     } from '@ionic/vue';
 
     import { ref } from 'vue';
     import { useRouter } from 'vue-router';
+    import { mostrarRegistroEnviado, mostrarToast } from '@/services/feedback';
+    import AppPageHeader from '@/components/AppPageHeader.vue';
 
     const router = useRouter();
     const username = ref('');
@@ -132,7 +135,7 @@
 
         try {
             const res = await fetch(
-                'http://192.168.1.80:3000/auth/registro',
+                'https://backend-nexo.onrender.com/auth/registro',
                 {
                     method: 'POST',
                     headers: {
@@ -152,11 +155,15 @@
             mensaje.value = data.mensaje;
 
             if (res.ok) {
-                router.push('/login');
+                mensaje.value = '';
+                await mostrarRegistroEnviado(router, data.mensaje);
+            } else {
+                await mostrarToast(data.mensaje || 'No se pudo completar el registro', 'danger');
             }
         } catch (error) {
             console.error(error);
-            mensaje.value= 'Error al conectar con el servidor';
+            mensaje.value = 'Error al conectar con el servidor';
+            void mostrarToast('Error al conectar con el servidor', 'danger');
         }
     };
 
@@ -169,6 +176,10 @@
 
     .mensaje {
         text-align: center;
-        color: red;
+        color: var(--ion-color-danger);
+    }
+
+    .regist-info {
+        margin-bottom: 8px;
     }
 </style>

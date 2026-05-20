@@ -1,39 +1,30 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start"> 
-          <ion-menu-button></ion-menu-button> 
-        </ion-buttons> 
-        <div style="display: flex; align-items: center;">
-          <ion-title> 
-            <img src="@/assets/AppLogo.png" style="height:40px; margin-right:8px;"> 
-            Nexo de ayuda
-          </ion-title> 
-          <p style="margin: 0;"> NEXO CETI EXPRESS </p>
-        </div>
-      </ion-toolbar>
+      <AppPageHeader title="Nexo de ayuda" />
     </ion-header>
 
     <ion-content class="nexoA">
-      <h2>Centro de Apoyo a estudiantes, solucion de dudas y apoyo de la comunidad</h2>
-      <h3> <strong>Esta seccion es para compartir dudas escolares y recibir apoyo de otros alumnos o del personal escolar</strong> </h3>
-      <div class="duda">
-        <p> ¿Tienes dudas? </p>
+      <p class="page-intro">
+        Centro de apoyo a estudiantes: comparte dudas escolares y recibe apoyo
+        de otros alumnos o del personal.
+      </p>
+      <div class="duda-banner">
+        <p>¿Tienes dudas?</p>
       </div>
-      <ion-button v-if="usuario?.rol !== 'admin'" expand="block" @click="abrirM = true">
-        Presiona aqui
-      </ion-button>
+      <div class="btn-solo" v-if="usuario?.rol !== 'admin'">
+        <ion-button @click="abrirM = true">Presiona aquí</ion-button>
+      </div>
 
-      <ion-card 
-      v-for="dud in dudas" 
+      <ion-card
+      v-for="dud in dudas"
       :key="dud.id"
-      :style="{
-        border: dud.revision
-        ? '3px solid red'
-        : (dud.importancia ? '2px solid orange' : '1px solid #ddd'),
-        opacity: dud.revision ? 0.5 : 1  
-      }">
+      :class="{
+        'duda-card--revision': dud.revision,
+        'duda-card--importante': dud.importancia && !dud.revision
+      }"
+      :style="{ opacity: dud.revision ? 0.7 : 1 }"
+      >
         <ion-card-content>
           <p> {{ dud.autor }} </p>
           <p> {{ dud.conte }} </p>
@@ -43,29 +34,31 @@
             {{ respues.autor }}: {{ respues.conte}}
             </p>
           </div>
-          <ion-button @click="dud.mostrarRespuesta = !dud.mostrarRespuesta">
-            Ayudar
-          </ion-button>
+          <div class="btn-group btn-group--card">
+            <ion-button @click="dud.mostrarRespuesta = !dud.mostrarRespuesta">
+              Ayudar
+            </ion-button>
+            <ion-button
+              v-if="dud.mostrarRespuesta"
+              @click="responder(dud)">
+              Enviar
+            </ion-button>
+            <ion-button v-if="usuario?.rol === 'profesor'" @click="toggleRevision(dud)">
+              Favor de revisar
+            </ion-button>
+            <ion-button v-if="usuario?.rol === 'profesor'" @click="toggleImportant(dud)">
+              Marcar como importante
+            </ion-button>
+            <ion-button v-if="usuario?.rol === 'admin'" color="danger" @click="eliminar(dud.id)">
+              Eliminar
+            </ion-button>
+          </div>
           <ion-input
-          v-if="dud.mostrarRespuesta"
-          v-model="dud.nuevaRespues"
-          placeholder="¿Conoces la respuesta?">
+            v-if="dud.mostrarRespuesta"
+            v-model="dud.nuevaRespues"
+            placeholder="¿Conoces la respuesta?"
+            class="input-space">
           </ion-input>
-          <ion-button
-          v-if="dud.mostrarRespuesta"
-          @click="responder(dud)">
-            Enviar
-          </ion-button>
-
-          <ion-button v-if="usuario?.rol === 'profesor'" @click="toggleRevision(dud)">
-            Favor de revisar
-          </ion-button>
-          <ion-button v-if="usuario?.rol === 'profesor'" @click="toggleImportant(dud)">
-            Marcar como importante
-          </ion-button>
-          <ion-button v-if="usuario?.rol === 'admin'" color="danger" @click="eliminar(dud.id)">
-            Eliminar
-          </ion-button>
         </ion-card-content>
       </ion-card>
       
@@ -80,12 +73,10 @@
             v-model="nuevaDuda"
             placeholder="¿Cual es tu duda?">
           </ion-input>
-          <ion-button expand="block" @click="crearDuda">
-            Publicar
-          </ion-button>
-          <ion-button expand="block" color="medium" @click="abrirM = false">
-            Cancelar
-          </ion-button>
+          <div class="btn-group btn-group--modal">
+            <ion-button @click="crearDuda">Publicar</ion-button>
+            <ion-button color="medium" @click="abrirM = false">Cancelar</ion-button>
+          </div>
         </ion-content>
         
         
@@ -99,11 +90,7 @@
 import {
   IonPage,
   IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
-  IonButtons,
-  IonMenuButton,
   IonButton,
   IonModal,
   IonInput,
@@ -115,6 +102,8 @@ import {
     onMounted, 
     onUnmounted 
 } from 'vue';
+import { mostrarToast } from '@/services/feedback';
+import AppPageHeader from '@/components/AppPageHeader.vue';
 
 let intervalDudas: any;
 
@@ -137,7 +126,7 @@ onMounted(async () => {
 
 const cargarDudas = async () => {
     try {
-        const res = await fetch('http://192.168.1.80:3000/dudas');
+        const res = await fetch('https://backend-nexo.onrender.com/dudas');
         if (!res.ok) {
             throw new Error('Error en el servidor');
         }
@@ -159,7 +148,7 @@ onUnmounted(() => {
 const crearDuda = async () => {
     if (!nuevaDuda.value) return;
     try {
-        const res = await fetch('http://192.168.1.80:3000/dudas', {
+        const res = await fetch('https://backend-nexo.onrender.com/dudas', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -184,9 +173,10 @@ const crearDuda = async () => {
 
     nuevaDuda.value = '';
     abrirM.value = false;
+    await mostrarToast('Tu duda se publicó', 'success');
     } catch (error) {
         console.error('Error al crear duda:', error);
-        alert('No se pudo crear la duda');
+        await mostrarToast('No se pudo crear la duda', 'danger');
     }
 };
 
@@ -195,7 +185,7 @@ const responder = async (dud: any) => {
 
     try {
         const res = await fetch (
-            `http://192.168.1.80:3000/dudas/${dud.id}/respuestas`,
+            `https://backend-nexo.onrender.com/dudas/${dud.id}/respuestas`,
             {
                 method: 'POST',
                 headers: {
@@ -220,16 +210,17 @@ const responder = async (dud: any) => {
 
         dud.nuevaRespues = '';
         dud.mostrarRespuesta = false;
+        await mostrarToast('Respuesta enviada', 'success');
     } catch (error) {
         console.error(error);
-        alert('No se pudo enviar la respuesta');
+        await mostrarToast('No se pudo enviar la respuesta', 'danger');
     }
 };
 
 const eliminar = async (id: number) => {
     try {
         const res = await fetch(
-            `http://192.168.1.80:3000/dudas/${id}`,
+            `https://backend-nexo.onrender.com/dudas/${id}`,
             {
                 method: 'DELETE'
             }
@@ -240,17 +231,18 @@ const eliminar = async (id: number) => {
         }
 
         dudas.value = dudas.value.filter(d => d.id !== id);
+        await mostrarToast('Publicación eliminada', 'success');
 
     } catch (error) {
         console.error(error);
-        alert('No se puede eliminar la duda');
+        await mostrarToast('No se puede eliminar la duda', 'danger');
     }
 };
 
 const toggleRevision = async (dud: any) => {
     try {
         const res = await fetch(
-            `http://192.168.1.80:3000/dudas/${dud.id}/revision`,
+            `https://backend-nexo.onrender.com/dudas/${dud.id}/revision`,
             {
                 method: 'PUT'
             }
@@ -262,16 +254,17 @@ const toggleRevision = async (dud: any) => {
 
         const dudaActualizada = await res.json();
         dud.revision = dudaActualizada.revision;
+        await mostrarToast('Estado de revisión actualizado', 'success');
     } catch (error) {
         console.error(error);
-        alert('No se pudo marcar para revision');
+        await mostrarToast('No se pudo marcar para revisión', 'danger');
     }
 };
 
 const toggleImportant = async (dud: any) => {
     try {
         const res = await fetch(
-            `http://192.168.1.80:3000/dudas/${dud.id}/importancia`,
+            `https://backend-nexo.onrender.com/dudas/${dud.id}/importancia`,
             {
                 method: 'PUT'
             }
@@ -283,20 +276,11 @@ const toggleImportant = async (dud: any) => {
 
         const dudaActualizada = await res.json();
         dud.importancia = dudaActualizada.importancia;
+        await mostrarToast('Importancia actualizada', 'success');
     } catch (error) {
         console.error(error);
-        alert('No se pudo cambiar su importancia');
+        await mostrarToast('No se pudo cambiar la importancia', 'danger');
     }
 };
 
 </script>
-
-<style>
-  .duda {
-    background-color: #95f8f0e0;
-  }
-  .duda p {
-    background-color: #95f8f0e0;
-    text-align: center;
-  }
-</style>

@@ -1,172 +1,568 @@
-body.tema-default .avisos {
-    --background: #ebebebd1;
-    color: #000000;
+/**
+ * NEXO CETI EXPRESS — Design System
+ *
+ * Paleta recomendada (marca + UI amigable):
+ * - Primario:    #4F6BF6  azul índigo (acciones, toolbar)
+ * - Secundario:  #7C3AED  púrpura (acento del logo)
+ * - Terciario:   #14B8A6  teal (highlights, CTA suaves)
+ * - Superficie clara: #F4F6FB / #FFFFFF
+ * - Superficie oscura: #0F1117 / #1A1F2E
+ * - Texto:       #1A1D26 (claro) / #E8EAED (oscuro)
+ */
+
+/* ─── Ionic: colores de marca (modo claro) ─── */
+:root {
+  --ion-color-primary: #4f6bf6;
+  --ion-color-primary-rgb: 79, 107, 246;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #465ed8;
+  --ion-color-primary-tint: #617af7;
+
+  --ion-color-secondary: #7c3aed;
+  --ion-color-secondary-rgb: 124, 58, 237;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #6d33d1;
+  --ion-color-secondary-tint: #894eef;
+
+  --ion-color-tertiary: #14b8a6;
+  --ion-color-tertiary-rgb: 20, 184, 166;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #12a292;
+  --ion-color-tertiary-tint: #2cbfaf;
+
+  --ion-color-success: #22c55e;
+  --ion-color-warning: #f59e0b;
+  --ion-color-danger: #ef4444;
+  --ion-color-medium: #9ca3af;
+
+  /* Tokens de app */
+  --nexo-page-bg: #f4f6fb;
+  --nexo-surface: #ffffff;
+  --nexo-surface-muted: #eef1f8;
+  --nexo-text: #1a1d26;
+  --nexo-text-muted: #6b7280;
+  --nexo-border: #e2e8f0;
+  --nexo-toolbar-bg: #4f6bf6;
+  --nexo-toolbar-text: #ffffff;
+  --nexo-accent-soft: #eef2ff;
+  --nexo-accent-panel: #e0f2fe;
+  --nexo-shadow: 0 2px 12px rgba(26, 29, 38, 0.08);
+  --nexo-radius: 12px;
+  --nexo-radius-sm: 8px;
+
+  --ion-background-color: var(--nexo-page-bg);
+  --ion-text-color: var(--nexo-text);
+  --ion-card-background: var(--nexo-surface);
+  --ion-item-background: var(--nexo-surface);
+  --ion-toolbar-background: var(--nexo-toolbar-bg);
+  --ion-toolbar-color: var(--nexo-toolbar-text);
+  --ion-border-color: var(--nexo-border);
 }
 
-body.tema-default .login-bg {
-    --background: #b5eae2;
+/* ─── Tema extra: Mensajería (paleta tipo apps de chat) ─── */
+body.tema-extra {
+  --ion-color-primary: #007aff;
+  --ion-color-primary-rgb: 0, 122, 255;
+  --ion-color-primary-shade: #0066d6;
+  --ion-color-primary-tint: #1a88ff;
+
+  --ion-color-secondary: #34c759;
+  --ion-color-secondary-rgb: 52, 199, 89;
+  --ion-color-secondary-shade: #2eb04e;
+  --ion-color-secondary-tint: #48cd6a;
+
+  --ion-color-tertiary: #5ac8fa;
+  --ion-color-tertiary-rgb: 90, 200, 250;
+  --ion-color-tertiary-shade: #4fb0dc;
+  --ion-color-tertiary-tint: #6bcefb;
+
+  --nexo-page-bg: #f0f2f5;
+  --nexo-surface: #ffffff;
+  --nexo-surface-muted: #e9e9eb;
+  --nexo-text: #1c1c1e;
+  --nexo-text-muted: #6e6e73;
+  --nexo-border: #d1d1d6;
+  --nexo-toolbar-bg: #007aff;
+  --nexo-toolbar-text: #ffffff;
+  --nexo-accent-soft: #e7f3ff;
+  --nexo-accent-panel: #dcf8c6;
+  --nexo-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --nexo-bubble-out: #dcf8c6;
+  --nexo-bubble-in: #ffffff;
+
+  --ion-background-color: var(--nexo-page-bg);
+  --ion-text-color: var(--nexo-text);
+  --ion-card-background: var(--nexo-surface);
+  --ion-item-background: var(--nexo-surface);
+  --ion-toolbar-background: var(--nexo-toolbar-bg);
+  --ion-toolbar-color: var(--nexo-toolbar-text);
+  --ion-border-color: var(--nexo-border);
 }
 
-body.tema-default .group {
-    --background: #6d5978;
+body.tema-extra ion-card {
+  border-color: #c7e9ff;
 }
 
-body.tema-default .conf {
-    --background: #d8dab3;
+body.tema-extra .chat-list-card {
+  --background: var(--nexo-surface);
+  border-left: 4px solid var(--ion-color-primary);
 }
 
-body.tema-default .nexoA {
-    --background: #adacac;
+body.tema-extra .admin-chat,
+body.tema-extra .duda-banner {
+  background: var(--nexo-accent-soft);
 }
 
-body.tema-default .ion-padding {
-    --background: #ceba87;
+/* Tokens en modo oscuro (Ionic + app) */
+html.ion-palette-dark {
+  --nexo-page-bg: #0f1117;
+  --nexo-surface: #1a1f2e;
+  --nexo-surface-muted: #252b3d;
+  --nexo-text: #e8eaed;
+  --nexo-text-muted: #9ca3af;
+  --nexo-border: #2d3548;
+  --nexo-toolbar-bg: #2d3a6e;
+  --nexo-toolbar-text: #ffffff;
+  --nexo-accent-soft: #1e2a4a;
+  --nexo-accent-panel: #1a3330;
+  --nexo-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+
+  --ion-background-color: var(--nexo-page-bg);
+  --ion-text-color: var(--nexo-text);
+  --ion-card-background: var(--nexo-surface);
+  --ion-item-background: var(--nexo-surface);
+  --ion-toolbar-background: var(--nexo-toolbar-bg);
+  --ion-toolbar-color: var(--nexo-toolbar-text);
+  --ion-border-color: var(--nexo-border);
 }
 
-body.tema-default ion-toolbar,
-body.tema-default ion-menu,
-body.tema-default ion-item,
-body.tema-default ion-card,
-body.tema-default ion-card-title,
-body.tema-default ion-card-content,
-body.tema-default ion-input,
-body.tema-default ion-select,
-body.tema-default ion-textarea {
-    --background: #82c67bce;
-    --color: #000000;
-    color: #000000;
+/* ─── Páginas: fondo unificado ─── */
+.login-bg,
+.avisos,
+.conf,
+.group,
+.nexoA,
+.ion-padding,
+.lateral {
+  --background: var(--nexo-page-bg);
+  color: var(--nexo-text);
 }
 
-body.tema-default #container,
-body.tema-default #container p,
-body.tema-default #container strong {
-    color: #000000;
+/* ─── Componentes Ionic ─── */
+ion-toolbar {
+  --background: var(--nexo-toolbar-bg);
+  --color: var(--nexo-toolbar-text);
+  --border-width: 0;
 }
 
-body.tema-claro .login-bg,
-body.tema-claro .group,
-body.tema-claro .conf,
-body.tema-claro .nexoA,
-body.tema-claro .avisos,
-body.tema-claro .ion-padding {
-    --background: #f5f5f5ce;
-    color: #000000;
+ion-menu ion-toolbar {
+  --background: var(--nexo-toolbar-bg);
 }
 
-body.tema-claro ion-toolbar,
-body.tema-claro ion-menu,
-body.tema-claro ion-item,
-body.tema-claro ion-card,
-body.tema-claro ion-card-header,
-body.tema-claro ion-card-content,
-body.tema-claro ion-card-title,
-body.tema-claro ion-input,
-body.tema-claro ion-select,
-body.tema-claro ion-textarea,
-body.tema-claro ion-list {
-    --background: #8be6ffe2;
-    --color: #000000;
-    color: #000000;
+ion-card {
+  --background: var(--nexo-surface);
+  border-radius: var(--nexo-radius);
+  box-shadow: var(--nexo-shadow);
+  margin: 12px 16px;
+  border: 1px solid var(--nexo-border);
 }
 
-body.tema-claro h1,
-body.tema-claro h2,
-body.tema-claro h3,
-body.tema-claro p,
-body.tema-claro strong,
-body.tema-claro small,
-body.tema-claro ion-label,
-body.tema-claro #container,
-body.tema-claro #container p,
-body.tema-claro #container strong {
-    color: #000000;
+ion-card-header {
+  padding-bottom: 4px;
 }
 
-body.tema-oscuro .login-bg,
-body.tema-oscuro .group,
-body.tema-oscuro .conf,
-body.tema-oscuro .nexoA,
-body.tema-oscuro .avisos,
-body.tema-oscuro .ion-padding {
-    --background: #140121;
-    color: #ffffff;
+ion-item {
+  --background: var(--nexo-surface);
+  --color: var(--nexo-text);
+  --border-color: var(--nexo-border);
+  border-radius: var(--nexo-radius-sm);
+  margin-bottom: 4px;
 }
 
-body.tema-oscuro ion-toolbar,
-body.tema-oscuro ion-menu,
-body.tema-oscuro ion-item,
-body.tema-oscuro ion-card,
-body.tema-oscuro ion-card-header,
-body.tema-oscuro ion-card-content,
-body.tema-oscuro ion-card-title,
-body.tema-oscuro ion-input,
-body.tema-oscuro ion-select,
-body.tema-oscuro ion-textarea,
-body.tema-oscuro ion-list {
-    --background: #002e32;
-    --color: #ffffff;
-    color: #ffffff;
+ion-input,
+ion-select,
+ion-textarea {
+  --background: var(--nexo-surface-muted);
+  --color: var(--nexo-text);
+  --placeholder-color: var(--nexo-text-muted);
+  --border-color: var(--nexo-border);
+  margin: 8px 0;
 }
 
-body.tema-oscuro h1,
-body.tema-oscuro h2,
-body.tema-oscuro h3,
-body.tema-oscuro p,
-body.tema-oscuro strong,
-body.tema-oscuro small,
-body.tema-oscuro ion-label,
-body.tema-oscuro #container,
-body.tema-oscuro #container p,
-body.tema-oscuro #container strong {
-    color: #ffffff !important;
+ion-button {
+  --border-radius: var(--nexo-radius-sm);
+  --padding-start: 14px;
+  --padding-end: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  margin: 0;
+  width: auto;
+  flex: 0 0 auto;
 }
 
-body.alto-contraste .login-bg,
-body.alto-contraste .group,
-body.alto-contraste .conf,
-body.alto-contraste .nexoA,
-body.alto-contraste .avisos,
-body.alto-contraste .ion-padding {
-    --background: #000000 !important;
-    color: #ffffff !important;
+ion-button::part(native) {
+  width: auto;
 }
 
-body.alto-contraste ion-toolbar,
-body.alto-contraste ion-menu,
-body.alto-contraste ion-item,
+/* Grupo de botones en una o varias líneas según espacio */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.btn-group--center {
+  justify-content: center;
+}
+
+.btn-group--end {
+  justify-content: flex-end;
+}
+
+.btn-group--card {
+  padding: 4px 12px 12px;
+}
+
+.btn-group--modal {
+  padding: 12px 16px 8px;
+}
+
+.btn-group--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.btn-group--stack ion-button {
+  align-self: center;
+}
+
+/* Acción principal aislada (centrada, ancho al texto) */
+.btn-solo {
+  display: flex;
+  justify-content: center;
+  padding: 8px 16px 12px;
+}
+
+.btn-solo ion-button {
+  margin: 0;
+}
+
+/* Formularios login/registro: botones centrados, no a todo el ancho */
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 24px;
+}
+
+.form-actions ion-button {
+  margin: 0;
+}
+
+ion-toggle {
+  padding: 12px 0;
+}
+
+ion-badge {
+  border-radius: 6px;
+  font-weight: 600;
+  margin: 2px 4px 2px 0;
+}
+
+ion-accordion-group {
+  margin: 0 16px 16px;
+  border-radius: var(--nexo-radius);
+  overflow: hidden;
+  border: 1px solid var(--nexo-border);
+}
+
+/* ─── Utilidades globales ─── */
+.page-intro {
+  text-align: center;
+  padding: 16px 20px 8px;
+  color: var(--nexo-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.page-intro strong {
+  color: var(--nexo-text);
+}
+
+/* ─── Barra superior (logo + sección + marca) ─── */
+ion-toolbar {
+  --min-height: 56px;
+}
+
+.app-toolbar-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px 8px;
+  padding: 6px 12px 8px 4px;
+  min-width: 0;
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+}
+
+.app-toolbar-content--login {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.app-toolbar-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-toolbar-title {
+  margin: 0;
+  padding: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--nexo-toolbar-text);
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-header-brand {
+  margin: 0;
+  padding: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  opacity: 0.9;
+  color: var(--nexo-toolbar-text);
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  width: 100%;
+  max-width: 100%;
+}
+
+.app-toolbar-content--login .app-header-brand {
+  width: auto;
+}
+
+.app-logo {
+  height: 34px;
+  width: auto;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+.app-toolbar--login {
+  --min-height: 52px;
+}
+
+.error-text {
+  color: var(--ion-color-danger);
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+.muted-text {
+  color: var(--nexo-text-muted);
+  font-size: 0.75rem;
+}
+
+/* Login / registro */
+.login-bg ion-input,
+.ion-padding.login-form ion-input {
+  margin: 12px 16px;
+}
+
+.login-bg .form-actions,
+.ion-padding.login-bg .form-actions {
+  margin-top: 4px;
+}
+
+/* Avisos */
+#container {
+  text-align: center;
+  padding: 8px 20px 16px;
+}
+
+#container p {
+  color: var(--nexo-text-muted);
+  line-height: 1.5;
+  margin: 4px 0;
+}
+
+#container strong {
+  color: var(--nexo-text);
+}
+
+.aviso-leido {
+  opacity: 0.65;
+}
+
+.aviso-no-leido {
+  border-left: 4px solid var(--ion-color-primary);
+}
+
+.aviso-importante {
+  border: 2px solid var(--ion-color-danger);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
+}
+
+/* Chat */
+.admin-chat {
+  padding: 16px;
+  background: var(--nexo-accent-panel);
+  border-radius: 0 0 var(--nexo-radius-sm) var(--nexo-radius-sm);
+}
+
+.chat-footer-toolbar {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-footer-toolbar ion-input {
+  flex: 1;
+  margin: 0;
+}
+
+.chat-footer-toolbar ion-button {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Grupos */
+.buscador {
+  margin: 12px 16px;
+}
+
+.chat-list-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-bottom: 10px;
+}
+
+.chat-list-card:active {
+  transform: scale(0.98);
+  opacity: 0.92;
+}
+
+.chat-list-meta {
+  margin: 4px 0;
+  color: var(--nexo-text-muted);
+  font-size: 0.9rem;
+}
+
+.chat-list-hint {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+/* Nexo Ayuda */
+.duda-banner {
+  background: var(--nexo-accent-panel);
+  border-radius: var(--nexo-radius);
+  margin: 12px 16px;
+  padding: 14px;
+  text-align: center;
+  border: 1px solid var(--nexo-border);
+}
+
+.duda-banner p {
+  margin: 0;
+  color: var(--ion-color-tertiary-shade);
+  font-weight: 600;
+}
+
+html.ion-palette-dark .duda-banner p {
+  color: var(--ion-color-tertiary);
+}
+
+.duda-card--revision {
+  border: 2px solid var(--ion-color-danger) !important;
+  opacity: 0.7;
+}
+
+.duda-card--importante {
+  border: 2px solid var(--ion-color-warning) !important;
+}
+
+/* Config */
+.conf ion-card ion-card {
+  margin: 12px 0;
+  box-shadow: none;
+}
+
+.conf h2 {
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0 20px;
+}
+
+/* Admin */
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-tabs ion-button {
+  margin: 0;
+}
+
+.input-space {
+  margin-top: 12px;
+}
+
+/* ─── Alto contraste ─── */
+body.alto-contraste {
+  --nexo-page-bg: #000000;
+  --nexo-surface: #000000;
+  --nexo-surface-muted: #111111;
+  --nexo-text: #ffffff;
+  --nexo-text-muted: #ffffff;
+  --nexo-border: #ffffff;
+  --nexo-toolbar-bg: #000000;
+  --nexo-accent-soft: #000000;
+  --nexo-accent-panel: #111111;
+}
+
 body.alto-contraste ion-card,
-body.alto-contraste ion-card-header,
-body.alto-contraste ion-card-content,
-body.alto-contraste ion-card-title,
-body.alto-contraste ion-card-subtitle,
+body.alto-contraste ion-item,
 body.alto-contraste ion-input,
 body.alto-contraste ion-select,
-body.alto-contraste ion-textarea,
-body.alto-contraste ion-list {
-    --background: #000000 !important;
-    --color: #ffffff !important;
-    color: #ffffff !important;
-    border-color: #ffffff !important;
+body.alto-contraste ion-textarea {
+  border: 2px solid #ffffff !important;
 }
 
-body.alto-contraste h1,
-body.alto-contraste h2,
-body.alto-contraste h3,
-body.alto-contraste p,
-body.alto-contraste strong,
-body.alto-contraste small,
-body.alto-contraste ion-label,
-body.alto-contraste #container,
-body.alto-contraste #container p,
-body.alto-contraste #container strong {
-    color: #ffffff !important;
-}
-
-body.alto-contraste ion-card {
-    border: 2px solid #ffffff !important;
-}
-
-body.texto-normal,
+/* ─── Tamaños de letra (corregido) ─── */
 body.texto-normal ion-content,
 body.texto-normal ion-card,
 body.texto-normal ion-input,
@@ -175,15 +571,13 @@ body.texto-normal ion-textarea,
 body.texto-normal ion-button,
 body.texto-normal ion-menu,
 body.texto-normal p,
-body.texto-normal h3,
 body.texto-normal h2,
-body.texto-normal ion-content-title
-body.texto-normal ion-card-title
+body.texto-normal h3,
+body.texto-normal ion-card-title,
 body.texto-normal .lateral {
-    font-size: 16px;
+  font-size: 16px;
 }
 
-body.texto-grande,
 body.texto-grande ion-content,
 body.texto-grande ion-card,
 body.texto-grande ion-input,
@@ -192,25 +586,20 @@ body.texto-grande ion-textarea,
 body.texto-grande ion-button,
 body.texto-grande ion-menu,
 body.texto-grande p,
-body.texto-grande h3,
 body.texto-grande h2,
-body.texto-grande ion-content-title
-body.texto-grande ion-card-title
+body.texto-grande h3,
+body.texto-grande ion-card-title,
 body.texto-grande .lateral {
-    font-size: 19px;
+  font-size: 19px;
 }
 
 body.texto-grande ion-card-title,
 body.texto-grande ion-card-content,
-body.texto-grande ion-card-content *,
 body.texto-grande ion-badge,
-body.texto-grande ion-label,
-body.texto-grande h2,
-body.texto-grande h3 {
-    font-size: 19px !important;
+body.texto-grande ion-label {
+  font-size: 19px !important;
 }
 
-body.texto-muy-grande,
 body.texto-muy-grande ion-content,
 body.texto-muy-grande ion-card,
 body.texto-muy-grande ion-input,
@@ -219,27 +608,24 @@ body.texto-muy-grande ion-textarea,
 body.texto-muy-grande ion-button,
 body.texto-muy-grande ion-menu,
 body.texto-muy-grande p,
-body.texto-muy-grande h3,
 body.texto-muy-grande h2,
-body.texto-muy-grande ion-content-title
-body.texto-muy-grande ion-card-title
+body.texto-muy-grande h3,
+body.texto-muy-grande ion-card-title,
 body.texto-muy-grande .lateral {
-    font-size: 22px;
+  font-size: 22px;
 }
+
 body.texto-muy-grande ion-card-title,
 body.texto-muy-grande ion-card-content,
-body.texto-muy-grande ion-card-content *,
 body.texto-muy-grande ion-badge,
-body.texto-muy-grande ion-label,
-body.texto-muy-grande h2,
-body.texto-muy-grande h3 {
-    font-size: 22px !important;
+body.texto-muy-grande ion-label {
+  font-size: 22px !important;
 }
 
 body.texto-grande ion-button::part(native) {
-    font-size: 19px !important;
+  font-size: 19px !important;
 }
 
 body.texto-muy-grande ion-button::part(native) {
-    font-size: 22px !important;
+  font-size: 22px !important;
 }

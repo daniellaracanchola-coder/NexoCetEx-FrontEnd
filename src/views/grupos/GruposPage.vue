@@ -1,18 +1,7 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start"> 
-          <ion-menu-button></ion-menu-button> 
-        </ion-buttons> 
-        <div style="display: flex; align-items: center;">
-          <ion-title> 
-            <img src="@/assets/AppLogo.png" style="height:40px; margin-right:8px;"> 
-            Grupos
-          </ion-title> 
-          <p style="margin: 0;"> NEXO CETI EXPRESS </p>
-        </div>
-      </ion-toolbar>
+      <AppPageHeader title="Grupos" />
     </ion-header>
 
     <ion-content class="group">
@@ -38,11 +27,11 @@
                         class="buscador">
                     </ion-input>
 
-                    <ion-button
-                        expand="block"
-                        @click="crearGrupo">
+                    <div class="btn-solo">
+                      <ion-button @click="crearGrupo">
                         Crear grupo con usuarios seleccionados
-                    </ion-button>
+                      </ion-button>
+                    </div>
 
                     <p style="text-align:center;">
                         Usuarios seleccionados:
@@ -56,21 +45,20 @@
                             <p> {{ user.username }}</p>
                             <p> Rol: {{ user.rol }}</p>
 
-                            <ion-button
-                                expand="block"
-                                @click="crearChatDirecto(user.id)">
-                                Crear chat directo 
-                            </ion-button>
-                            <ion-button
-                                expand="block"
+                            <div class="btn-group btn-group--card">
+                              <ion-button @click="crearChatDirecto(user.id)">
+                                Crear chat directo
+                              </ion-button>
+                              <ion-button
                                 color="medium"
                                 @click="seleccionarUsuario(user.id)">
                                 {{
-                                    usuariosSeleccionados.includes(user.id)
-                                        ? 'Quitar del grupo'
-                                        : 'Agregar al grupo'
+                                  usuariosSeleccionados.includes(user.id)
+                                    ? 'Quitar del grupo'
+                                    : 'Agregar al grupo'
                                 }}
-                            </ion-button>
+                              </ion-button>
+                            </div>
                         </ion-card-content>
                     </ion-card>
                 </div>
@@ -81,7 +69,10 @@
 
         <ion-card
             v-for="chat in chats"
-            :key="chat.id">
+            :key="chat.id"
+            button
+            class="chat-list-card"
+            @click="entrarChat(chat.id)">
             <ion-card-header>
                 <ion-card-title>
                     {{ chat.nombreMostrar || chat.nombre || 'Chat' }}
@@ -89,18 +80,14 @@
             </ion-card-header>
 
             <ion-card-content>
-                <p>Tipo: {{ chat.tipo }}</p>
+                <p class="chat-list-meta">Tipo: {{ chat.tipo }}</p>
 
-                <p v-if="chat.grado && chat.grupo">
+                <p v-if="chat.grado && chat.grupo" class="chat-list-meta">
                     Grupo: {{ chat.grado }}{{ chat.grupo }}
                 </p>
-            </ion-card-content>
 
-            <ion-button
-                expand="block"
-                @click="router.push(`/chat/${chat.id}`)">
-                Entrar al chat
-            </ion-button>
+                <p class="chat-list-hint">Toca para abrir el chat</p>
+            </ion-card-content>
         </ion-card>
     </ion-content>
   </ion-page>
@@ -110,11 +97,7 @@
 import {
   IonPage,
   IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
-  IonButtons,
-  IonMenuButton,
   IonInput,
   IonButton,
   IonCard,
@@ -122,7 +105,8 @@ import {
   IonCardTitle,
   IonCardContent,
   IonAccordion,
-  IonAccordionGroup
+  IonAccordionGroup,
+  IonLabel,
 } from '@ionic/vue';
 
 import {
@@ -132,8 +116,14 @@ import {
 } from 'vue';
 
 import { useRouter } from 'vue-router';
+import { mostrarToast } from '@/services/feedback';
+import AppPageHeader from '@/components/AppPageHeader.vue';
 
 const router = useRouter();
+
+const entrarChat = (chatId: number) => {
+  router.push(`/chat/${chatId}`);
+};
 
 const token = localStorage.getItem('token');
 
@@ -146,7 +136,7 @@ let intervalGrupos: any;
 const crearGrupoAula = async () => {
     try{
         await fetch(
-            'http://192.168.1.80:3000/chats/aula',
+            'https://backend-nexo.onrender.com/chats/aula',
             {
                 method: 'POST',
                 headers: {
@@ -162,7 +152,7 @@ const crearGrupoAula = async () => {
 const cargarChats = async () => {
     try {
         const res = await fetch(
-            'http://192.168.1.80:3000/chats/mis-chats',
+            'https://backend-nexo.onrender.com/chats/mis-chats',
             {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -183,7 +173,7 @@ const buscarUsuarios = async () => {
 
     try {
         const res = await fetch(
-            `http://192.168.1.80:3000/chats/usuarios?buscar=${busqueda.value}`,
+            `https://backend-nexo.onrender.com/chats/usuarios?buscar=${busqueda.value}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -198,8 +188,8 @@ const buscarUsuarios = async () => {
 
 const crearChatDirecto = async (usuarioDestinoId: number) =>  {
     try {
-        await fetch(
-            'http://192.168.1.80:3000/chats/directo',
+        const res = await fetch(
+            'https://backend-nexo.onrender.com/chats/directo',
             {
                 method: 'POST',
                 headers: {
@@ -211,12 +201,18 @@ const crearChatDirecto = async (usuarioDestinoId: number) =>  {
                 })
             }
         );
+        if (!res.ok) {
+            await mostrarToast('No se pudo crear el chat directo', 'danger');
+            return;
+        }
         busqueda.value = '';
         usuariosEncontrados.value = [];
         usuariosSeleccionados.value = [];
         await cargarChats();
+        await mostrarToast('Chat directo creado', 'success');
     } catch (error) {
         console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
     }
 };
 
@@ -248,12 +244,13 @@ const seleccionarUsuario = (id: number) => {
 
 const crearGrupo = async () => {
     if (!nombreGrupo.value || usuariosSeleccionados.value.length === 0) {
+        await mostrarToast('Indica un nombre de grupo y al menos un usuario', 'warning');
         return;
     }
 
     try {
-        await fetch(
-            'http://192.168.1.80:3000/chats/grupo',
+        const res = await fetch(
+            'https://backend-nexo.onrender.com/chats/grupo',
             {
                 method: 'POST',
                 headers: {
@@ -267,29 +264,21 @@ const crearGrupo = async () => {
             }
         );
 
+        if (!res.ok) {
+            await mostrarToast('No se pudo crear el grupo', 'danger');
+            return;
+        }
+
         nombreGrupo.value = '';
         usuariosSeleccionados.value = [];
         usuariosEncontrados.value = [];
 
         await cargarChats();
+        await mostrarToast('Grupo creado correctamente', 'success');
     } catch (error) {
         console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
     }
 };
 
 </script>
-
-<style scoped>
-.buscador{
-    width: 50%;
-    border-radius: 10% 10% 10% 10%;
-    margin: 16px auto;
-    background-color: #f1e7b9;
-    color: #000000;
-}
-
-ion-card {
-    border-radius: 0 16px 0 16px;
-    margin-bottom: 16px;
-}
-</style>

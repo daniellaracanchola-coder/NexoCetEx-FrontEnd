@@ -1,59 +1,72 @@
-<template> <!--Primera parte del codigo, para el acomodo de los componentes web de la aplicacion -->
+<template>
   <ion-app>
-
-    <ion-menu content-id="main-content"> <!-- Para la creacion del menu lateral -->
-      <ion-header> <!-- Semantica para que el componente que siempre en la parte superior de la pagina -->
-        <ion-toolbar> <!-- Componente con el que se visualiza el menu lateral -->
-          <ion-title>Menu</ion-title> <!-- Titulo del componente anterior, es decir, el menu -->
+    <ion-menu content-id="main-content">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Menú</ion-title>
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="Lateral"> <!-- Inicia el contenido del componente -->
-        <ion-list> <!-- Inicia una lista que va anidada en el componente -->
-          <ion-item router-link="/home">Muro</ion-item> <!-- Los objetos de la lista se componen de ruta de la vista de la pagina y nombre que aparece en el menu -->
-          <ion-item router-link="/grupos">Grupos</ion-item>
-          <ion-item router-link="/nexo-a">Nexo de Ayuda</ion-item>
-          <ion-item router-link="/config">Configuracion y Accesibilidad</ion-item>
-          <ion-item router-link="/admin" v-if="usuario?.rol === 'admin'">Administracion</ion-item>
-          <ion-item @click="logout">Cerrar sesion</ion-item> <!-- @click es la manera de decir que cuando el usuario haga click sucedera algo, en este caso llamara a la funcion para cerrar sesion -->
+      <ion-content class="lateral">
+        <ion-item lines="none">
+          <ion-label>
+            <h2>{{ usuario.username }}</h2>
+            <p v-if="usuario.rol" class="muted-text">{{ usuario.rol }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-list lines="none">
+          <ion-item button @click="irA('/home')">Muro</ion-item>
+          <ion-item button @click="irA('/grupos')">Grupos</ion-item>
+          <ion-item button @click="irA('/nexo-a')">Nexo de Ayuda</ion-item>
+          <ion-item button @click="irA('/config')">Configuración</ion-item>
+          <ion-item v-if="usuario?.rol === 'admin'" button @click="irA('/admin')">
+            Administración
+          </ion-item>
+          <ion-item button color="danger" @click="logout">Cerrar sesión</ion-item>
         </ion-list>
       </ion-content>
     </ion-menu>
 
-    <!-- Inicio de la pagina principal -->
-    <ion-router-outlet id="main-content" /> 
-
+    <ion-router-outlet id="main-content" />
   </ion-app>
 </template>
 
-<script setup lang="ts"> // Segunda seccion del codigo, aqui va la logica del programa 
-import { 
-  IonApp, 
-  IonRouterOutlet, 
-  IonMenu, 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonList, 
-  IonItem 
-} from '@ionic/vue'; // Se importan las bibliotecas de los componentes de IONIC/Vue 
+<script setup lang="ts">
+import {
+  IonApp,
+  IonRouterOutlet,
+  IonMenu,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonList,
+  IonItem,
+  IonLabel,
+} from '@ionic/vue';
 
-import { useRouter } from 'vue-router'; 
+import { useRouter } from 'vue-router';
+import { menuController } from '@ionic/vue';
+import { initTemaLocal } from '@/services/configuracion';
+import { mostrarToast } from '@/services/feedback';
 
-const router = useRouter(); // Declaracion de la variable Router, importada anteriormente 
+const router = useRouter();
 
-// Declaracion de la variable usuario, que se guarda en un JSON de manera local en el disposivo y verifica que no sea nulo 
-const usuario = JSON.parse(
-    localStorage.getItem('usuario') || 'null'
-);
+const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
 
-// Declaracion de la funcion de cerrar sesion, se borra el contenido actual en la variable usuario y recarga la pagina a la vista de Login/ Inicio de sesion 
-const logout = () => {
+/** Cierra el menú lateral y navega (evita que el menú quede abierto). */
+const irA = async (path: string) => {
+  await menuController.close();
+  await router.push(path);
+};
+
+const logout = async () => {
   localStorage.removeItem('usuario');
   localStorage.removeItem('token');
-  router.push('/login');
+  initTemaLocal();
+  await menuController.close();
+  await mostrarToast('Sesión cerrada', 'success', 2000);
+  await router.push('/login');
 };
 </script>
-
-<!-- Aqui puede ir una tercera parte del codigo, que define el estilo visual de la pagina y los componentes -->
