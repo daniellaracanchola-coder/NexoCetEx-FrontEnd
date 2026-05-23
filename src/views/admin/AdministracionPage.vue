@@ -38,6 +38,9 @@
                     <ion-card-header>
                         <ion-card-title>
                             {{ usuario.username }}
+                            <ion-badge v-if="esSuperAdmin(usuario)" color="primary">
+                                Protegido
+                            </ion-badge>
                         </ion-card-title>
                     </ion-card-header>
                 
@@ -54,8 +57,12 @@
                         Grupo: {{ usuario.grupo }}
                     </p>
 
+                    <p v-if="esSuperAdmin(usuario)" class="muted-text">
+                        Cuenta principal: no se puede eliminar ni cambiar su nombre o rol.
+                    </p>
+
                     <ion-select
-                        v-if="!modoOffline"
+                        v-if="!modoOffline && !esSuperAdmin(usuario)"
                         label="Cambiar rol"
                         placeholder="Selecciona nuevo rol"
                         fill="outline"
@@ -75,7 +82,7 @@
                         </ion-select-option>
                     </ion-select>
 
-                    <div v-if="!modoOffline" class="btn-group btn-group--card">
+                    <div v-if="!modoOffline && !esSuperAdmin(usuario)" class="btn-group btn-group--card">
                       <ion-button color="success" @click="aprobar(usuario.id)">
                         Aprobar
                       </ion-button>
@@ -99,6 +106,9 @@
                 <ion-card-header>
                     <ion-card-title>
                         {{ usuario.username }}
+                        <ion-badge v-if="esSuperAdmin(usuario)" color="primary">
+                            Protegido
+                        </ion-badge>
                     </ion-card-title>
                 </ion-card-header>
 
@@ -115,8 +125,12 @@
                         Grupo: {{ usuario.grupo }}
                     </p>
 
+                    <p v-if="esSuperAdmin(usuario)" class="muted-text">
+                        Cuenta principal: no se puede eliminar ni cambiar su nombre o rol.
+                    </p>
+
                     <ion-select
-                        v-if="!modoOffline"
+                        v-if="!modoOffline && !esSuperAdmin(usuario)"
                         label="Cambiar rol"
                         placeholder="Selecciona nuevo rol"
                         fill="outline"
@@ -135,7 +149,7 @@
                             Admin
                         </ion-select-option>
                     </ion-select>
-                    <template v-if="usuario.rol === 'alumno' && !modoOffline">
+                    <template v-if="usuario.rol === 'alumno' && !modoOffline && !esSuperAdmin(usuario)">
                         <ion-input
                             v-model="usuario._editUsername"
                             label="Nombre de usuario"
@@ -173,7 +187,7 @@
                         </div>
                     </template>
 
-                    <template v-if="usuario.rol === 'admin' && usuario.id === usuarioActual.id && !modoOffline">
+                    <template v-if="usuario.rol === 'admin' && usuario.id === usuarioActual.id && !modoOffline && !esSuperAdmin(usuario)">
                         <ion-input
                             v-model="usuario._editUsername"
                             label="Tu nombre de usuario"
@@ -187,7 +201,7 @@
                         </div>
                     </template>
 
-                    <div v-if="!modoOffline && usuario.id !== usuarioActual.id" class="btn-solo">
+                    <div v-if="!modoOffline && usuario.id !== usuarioActual.id && !esSuperAdmin(usuario)" class="btn-solo">
                       <ion-button color="danger" @click="darBaja(usuario.id)">
                         Dar de baja
                       </ion-button>
@@ -224,7 +238,7 @@
                         <p class="muted-text">
                             {{ new Date(sol.fecha_solicitud).toLocaleString() }}
                         </p>
-                        <div v-if="!modoOffline" class="btn-group btn-group--card">
+                        <div v-if="!modoOffline && !esSuperAdmin({ username: sol.username_actual })" class="btn-group btn-group--card">
                             <ion-button color="success" @click="aprobarSolicitudPerfil(sol.id)">
                                 Aprobar
                             </ion-button>
@@ -252,6 +266,7 @@ import {
     IonSelect,
     IonSelectOption,
     IonInput,
+    IonBadge,
 } from '@ionic/vue';
 
 import { ref, onMounted } from 'vue';
@@ -266,6 +281,7 @@ import {
 } from '@/services/cacheOffline';
 import { sincronizarUsuarioLocal } from '@/services/perfil';
 import { GRADOS_OPCIONES, GRUPOS_OPCIONES } from '@/utils/perfilOpciones';
+import { esSuperAdmin } from '@/utils/superAdmin';
 
 const gradosOpciones = GRADOS_OPCIONES;
 const gruposOpciones = GRUPOS_OPCIONES;
@@ -314,6 +330,11 @@ const aprobar = async (id: number) => {
 };
 
 const rechazar = async (id: number) => {
+    const usuario = usuariosPendientes.value.find((u) => u.id === id);
+    if (usuario && esSuperAdmin(usuario)) {
+        await mostrarToast('SuperAdmin no puede eliminarse', 'warning');
+        return;
+    }
     if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
@@ -342,6 +363,12 @@ const cambiarRol = async (
     id: number,
     rol: string
 ) => {
+    const usuario = usuariosActuales.value.find((u) => u.id === id)
+        || usuariosPendientes.value.find((u) => u.id === id);
+    if (usuario && esSuperAdmin(usuario)) {
+        await mostrarToast('El rol de SuperAdmin no puede cambiarse', 'warning');
+        return;
+    }
     if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
@@ -410,7 +437,11 @@ const cargarSolicitudesPerfil = async () => {
 };
 
 const guardarPerfilAlumno = async (usuario: any) => {
-  if (bloquearSiOffline()) return;
+    if (esSuperAdmin(usuario)) {
+        await mostrarToast('Esta cuenta no puede modificarse', 'warning');
+        return;
+    }
+    if (bloquearSiOffline()) return;
   try {
     const body: Record<string, string> = {
       username: usuario._editUsername,
@@ -504,6 +535,11 @@ const cargarPendientes = async () => {
 };
 
 const darBaja = async (id: number) => {
+    const usuario = usuariosActuales.value.find((u) => u.id === id);
+    if (usuario && esSuperAdmin(usuario)) {
+        await mostrarToast('SuperAdmin no puede darse de baja', 'warning');
+        return;
+    }
     if (bloquearSiOffline()) return;
     try {
         const res = await fetch(

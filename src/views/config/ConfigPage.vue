@@ -60,11 +60,16 @@
               </span>
             </p>
 
-            <p v-if="solicitudPendiente" class="aviso-pendiente-perfil">
+            <p v-if="esSuperAdminCuenta" class="aviso-pendiente-perfil">
+              Cuenta principal del sistema: el nombre y el rol no pueden modificarse.
+            </p>
+
+            <p v-else-if="solicitudPendiente" class="aviso-pendiente-perfil">
               Tienes una solicitud pendiente de revisión por un administrador.
             </p>
 
             <ion-input
+              v-if="!esSuperAdminCuenta"
               v-model="perfilUsername"
               label="Nombre de usuario"
               fill="outline"
@@ -88,7 +93,7 @@
               </ion-select>
             </template>
 
-            <div class="btn-solo">
+            <div v-if="!esSuperAdminCuenta" class="btn-solo">
               <ion-button
                 v-if="esAdmin"
                 @click="guardarPerfilDirecto"
@@ -180,6 +185,7 @@ import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
 import { sincronizarUsuarioLocal } from '@/services/perfil';
 import { GRADOS_OPCIONES, GRUPOS_OPCIONES } from '@/utils/perfilOpciones';
+import { esSuperAdmin } from '@/utils/superAdmin';
 
 const gradosOpciones = GRADOS_OPCIONES;
 const gruposOpciones = GRUPOS_OPCIONES;
@@ -203,6 +209,7 @@ const mensajePerfil = ref('');
 
 const esAdmin = computed(() => perfilActual.value?.rol === 'admin');
 const esAlumno = computed(() => perfilActual.value?.rol === 'alumno');
+const esSuperAdminCuenta = computed(() => esSuperAdmin(perfilActual.value));
 
 const cargarPerfil = async () => {
   try {
