@@ -57,6 +57,27 @@
               </ion-select>
             </ion-item>
 
+            <template v-if="rolDes === 'alumno'">
+              <ion-item>
+                <ion-label>Grado (opcional)</ion-label>
+                <ion-select v-model="gradoDes" placeholder="Todos los grados">
+                  <ion-select-option value="todos">Todos los grados</ion-select-option>
+                  <ion-select-option v-for="g in gradosOpciones" :key="g" :value="g">
+                    {{ g }}°
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item>
+                <ion-label>Grupo (opcional)</ion-label>
+                <ion-select v-model="grupoDes" placeholder="Todos los grupos">
+                  <ion-select-option value="todos">Todos los grupos</ion-select-option>
+                  <ion-select-option v-for="g in gruposOpciones" :key="g" :value="g">
+                    Grupo {{ g }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+            </template>
+
             <div class="btn-group btn-group--modal">
               <ion-button @click="guardarA">Publicar</ion-button>
               <ion-button color="medium" @click="abrirM = false">Cancelar</ion-button>
@@ -91,6 +112,12 @@
             <ion-badge color="medium"
             v-if="anuncio.rolDes !== 'todos'">
               {{ anuncio.rolDes }}
+            </ion-badge>
+            <ion-badge
+              color="tertiary"
+              v-if="etiquetaDestino(anuncio)"
+            >
+              {{ etiquetaDestino(anuncio) }}
             </ion-badge>
 
             <ion-badge
@@ -203,6 +230,12 @@ import {
   fetchJsonConAuth,
   formatearFechaRespaldo,
 } from '@/services/cacheOffline';
+import { usuarioVeAviso } from '@/services/perfil';
+import {
+  GRADOS_OPCIONES,
+  GRUPOS_OPCIONES,
+  etiquetaDestinoAviso,
+} from '@/utils/perfilOpciones';
 
 let intervalAvisos: ReturnType<typeof setInterval> | null = null;
 
@@ -215,6 +248,12 @@ const nuevoTit = ref('');
 const nuevoConte = ref('');
 
 const rolDes = ref('todos');
+const gradoDes = ref('todos');
+const grupoDes = ref('todos');
+const gradosOpciones = GRADOS_OPCIONES;
+const gruposOpciones = GRUPOS_OPCIONES;
+
+const etiquetaDestino = etiquetaDestinoAviso;
 
 const anuncios = ref<any[]>([]);
 const modoOffline = ref(false);
@@ -255,7 +294,9 @@ const guardarA = async () => {
                     titulo: nuevoTit.value,
                     conte: nuevoConte.value,
                     autor: usuario.value?.username,
-                    rolDes: rolDes.value
+                    rolDes: rolDes.value,
+                    gradoDes: rolDes.value === 'alumno' ? gradoDes.value : null,
+                    grupoDes: rolDes.value === 'alumno' ? grupoDes.value : null,
                 })
             }
         );
@@ -272,6 +313,8 @@ const guardarA = async () => {
         nuevoTit.value = '';
         nuevoConte.value = '';
         rolDes.value = 'todos';
+        gradoDes.value = 'todos';
+        grupoDes.value = 'todos';
         errorA.value = '';
         abrirM.value = false;
         await mostrarToast('Anuncio publicado', 'success');
@@ -443,12 +486,7 @@ const cargarAnun = async () => {
 };
 
 const filtro = computed(() => {
-  return anuncios.value.filter(a => {
-    if (usuario.value?.rol === 'admin') return true;
-    if (a.rolDes === 'todos') return true;
-    if (usuario.value?.username === a.autor) return true;
-    return a.rolDes === usuario.value?.rol;
-  });
+  return anuncios.value.filter((a) => usuarioVeAviso(usuario.value, a));
 });
 
 </script>

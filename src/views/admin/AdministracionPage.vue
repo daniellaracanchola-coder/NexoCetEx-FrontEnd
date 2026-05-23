@@ -18,6 +18,12 @@
                 @click="seccion = 'usuarios'">
                 Usuarios actuales
             </ion-button>
+
+            <ion-button
+                :fill="seccion === 'solicitudes-perfil' ? 'solid' : 'outline'"
+                @click="abrirSolicitudesPerfil">
+                Cambios de perfil
+            </ion-button>
             </div>
 
             <div v-if="seccion === 'pendientes'">
@@ -129,11 +135,103 @@
                             Admin
                         </ion-select-option>
                     </ion-select>
+                    <template v-if="usuario.rol === 'alumno' && !modoOffline">
+                        <ion-input
+                            v-model="usuario._editUsername"
+                            label="Nombre de usuario"
+                            fill="outline"
+                            class="input-space"
+                        />
+                        <ion-select
+                            v-model="usuario._editGrado"
+                            label="Grado"
+                            fill="outline"
+                            class="input-space"
+                        >
+                            <ion-select-option
+                                v-for="g in gradosOpciones"
+                                :key="g"
+                                :value="g"
+                            >{{ g }}</ion-select-option>
+                        </ion-select>
+                        <ion-select
+                            v-model="usuario._editGrupo"
+                            label="Grupo"
+                            fill="outline"
+                            class="input-space"
+                        >
+                            <ion-select-option
+                                v-for="g in gruposOpciones"
+                                :key="g"
+                                :value="g"
+                            >{{ g }}</ion-select-option>
+                        </ion-select>
+                        <div class="btn-solo">
+                            <ion-button @click="guardarPerfilAlumno(usuario)">
+                                Guardar grado / grupo / nombre
+                            </ion-button>
+                        </div>
+                    </template>
+
+                    <template v-if="usuario.rol === 'admin' && usuario.id === usuarioActual.id && !modoOffline">
+                        <ion-input
+                            v-model="usuario._editUsername"
+                            label="Tu nombre de usuario"
+                            fill="outline"
+                            class="input-space"
+                        />
+                        <div class="btn-solo">
+                            <ion-button @click="guardarPerfilAlumno(usuario)">
+                                Guardar mi perfil
+                            </ion-button>
+                        </div>
+                    </template>
+
                     <div v-if="!modoOffline && usuario.id !== usuarioActual.id" class="btn-solo">
                       <ion-button color="danger" @click="darBaja(usuario.id)">
                         Dar de baja
                       </ion-button>
                     </div>
+                    </ion-card-content>
+                </ion-card>
+            </div>
+
+            <div v-if="seccion === 'solicitudes-perfil'">
+                <p v-if="solicitudesPerfil.length === 0">
+                    No hay solicitudes de cambio de perfil pendientes
+                </p>
+
+                <ion-card
+                    v-for="sol in solicitudesPerfil"
+                    :key="sol.id"
+                >
+                    <ion-card-header>
+                        <ion-card-title>{{ sol.username_actual }}</ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                        <p v-if="sol.username_nuevo">
+                            Nuevo nombre: <strong>{{ sol.username_nuevo }}</strong>
+                            (antes: {{ sol.username_actual }})
+                        </p>
+                        <p v-if="sol.grado_nuevo != null">
+                            Nuevo grado: <strong>{{ sol.grado_nuevo }}</strong>
+                            (antes: {{ sol.grado_actual }})
+                        </p>
+                        <p v-if="sol.grupo_nuevo">
+                            Nuevo grupo: <strong>{{ sol.grupo_nuevo }}</strong>
+                            (antes: {{ sol.grupo_actual }})
+                        </p>
+                        <p class="muted-text">
+                            {{ new Date(sol.fecha_solicitud).toLocaleString() }}
+                        </p>
+                        <div v-if="!modoOffline" class="btn-group btn-group--card">
+                            <ion-button color="success" @click="aprobarSolicitudPerfil(sol.id)">
+                                Aprobar
+                            </ion-button>
+                            <ion-button color="medium" @click="rechazarSolicitudPerfil(sol.id)">
+                                Rechazar
+                            </ion-button>
+                        </div>
                     </ion-card-content>
                 </ion-card>
             </div>
@@ -153,6 +251,7 @@ import {
     IonButton,
     IonSelect,
     IonSelectOption,
+    IonInput,
 } from '@ionic/vue';
 
 import { ref, onMounted } from 'vue';
@@ -165,6 +264,11 @@ import {
     fetchJsonConAuth,
     formatearFechaRespaldo,
 } from '@/services/cacheOffline';
+import { sincronizarUsuarioLocal } from '@/services/perfil';
+import { GRADOS_OPCIONES, GRUPOS_OPCIONES } from '@/utils/perfilOpciones';
+
+const gradosOpciones = GRADOS_OPCIONES;
+const gruposOpciones = GRUPOS_OPCIONES;
 
 const token = localStorage.getItem('token');
 const modoOffline = ref(false);
@@ -275,7 +379,109 @@ onMounted(() => {
 
 const usuariosPendientes = ref<any[]>([]);
 const usuariosActuales = ref<any[]>([]);
+const solicitudesPerfil = ref<any[]>([]);
 const seccion = ref('pendientes');
+
+function mapearUsuarioEdicion(u: any) {
+  return {
+    ...u,
+    _editUsername: u.username,
+    _editGrado: u.grado != null ? String(u.grado) : '',
+    _editGrupo: u.grupo || '',
+  };
+}
+
+const abrirSolicitudesPerfil = () => {
+  seccion.value = 'solicitudes-perfil';
+  cargarSolicitudesPerfil();
+};
+
+const cargarSolicitudesPerfil = async () => {
+  try {
+    const res = await fetch(
+      'https://backend-nexo.onrender.com/admin/solicitudes-perfil',
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) return;
+    solicitudesPerfil.value = await res.json();
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const guardarPerfilAlumno = async (usuario: any) => {
+  if (bloquearSiOffline()) return;
+  try {
+    const body: Record<string, string> = {
+      username: usuario._editUsername,
+    };
+    if (usuario.rol === 'alumno') {
+      body.grado = usuario._editGrado;
+      body.grupo = usuario._editGrupo;
+    }
+    const res = await fetch(
+      `https://backend-nexo.onrender.com/admin/usuarios/${usuario.id}/perfil`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      await mostrarToast(data.mensaje || 'No se pudo guardar', 'danger');
+      return;
+    }
+    if (usuario.id === usuarioActual.id) {
+      sincronizarUsuarioLocal(data.perfil);
+    }
+    await cargarUsuariosActuales();
+    await mostrarToast('Perfil actualizado', 'success');
+  } catch {
+    await mostrarToast('Error de conexión', 'danger');
+  }
+};
+
+const aprobarSolicitudPerfil = async (id: number) => {
+  if (bloquearSiOffline()) return;
+  try {
+    const res = await fetch(
+      `https://backend-nexo.onrender.com/admin/solicitudes-perfil/${id}/aprobar`,
+      { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      await mostrarToast(data.mensaje || 'Error al aprobar', 'danger');
+      return;
+    }
+    await cargarSolicitudesPerfil();
+    await cargarUsuariosActuales();
+    await mostrarToast('Solicitud aprobada', 'success');
+  } catch {
+    await mostrarToast('Error de conexión', 'danger');
+  }
+};
+
+const rechazarSolicitudPerfil = async (id: number) => {
+  if (bloquearSiOffline()) return;
+  try {
+    const res = await fetch(
+      `https://backend-nexo.onrender.com/admin/solicitudes-perfil/${id}/rechazar`,
+      { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) {
+      await mostrarToast('No se pudo rechazar', 'danger');
+      return;
+    }
+    await cargarSolicitudesPerfil();
+    await mostrarToast('Solicitud rechazada', 'success');
+  } catch {
+    await mostrarToast('Error de conexión', 'danger');
+  }
+};
 
 const cargarPendientes = async () => {
     try {
@@ -331,7 +537,7 @@ const cargarUsuariosActuales = async () => {
                     token
                 )
         );
-        usuariosActuales.value = resultado.data;
+        usuariosActuales.value = resultado.data.map(mapearUsuarioEdicion);
         if (resultado.desdeCache) {
             modoOffline.value = true;
             if (resultado.fechaCache) {

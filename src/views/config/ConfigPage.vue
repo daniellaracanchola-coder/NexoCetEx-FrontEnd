@@ -50,6 +50,65 @@
 
       <ion-card>
         <ion-card-header>
+            <ion-card-title>Mi perfil</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <p class="muted-text" v-if="perfilActual">
+              Usuario actual: <strong>{{ perfilActual.username }}</strong>
+              <span v-if="perfilActual.rol === 'alumno'">
+                · Grado {{ perfilActual.grado }} · Grupo {{ perfilActual.grupo }}
+              </span>
+            </p>
+
+            <p v-if="solicitudPendiente" class="aviso-pendiente-perfil">
+              Tienes una solicitud pendiente de revisión por un administrador.
+            </p>
+
+            <ion-input
+              v-model="perfilUsername"
+              label="Nombre de usuario"
+              fill="outline"
+              :readonly="esAlumno && !!solicitudPendiente"
+            />
+
+            <template v-if="perfilActual?.rol === 'alumno'">
+              <ion-select v-model="perfilGrado" label="Grado" fill="outline">
+                <ion-select-option
+                  v-for="g in gradosOpciones"
+                  :key="g"
+                  :value="g"
+                >{{ g }}</ion-select-option>
+              </ion-select>
+              <ion-select v-model="perfilGrupo" label="Grupo" fill="outline">
+                <ion-select-option
+                  v-for="g in gruposOpciones"
+                  :key="g"
+                  :value="g"
+                >{{ g }}</ion-select-option>
+              </ion-select>
+            </template>
+
+            <div class="btn-solo">
+              <ion-button
+                v-if="esAdmin"
+                @click="guardarPerfilDirecto"
+              >
+                Guardar perfil
+              </ion-button>
+              <ion-button
+                v-else-if="esAlumno"
+                :disabled="!!solicitudPendiente"
+                @click="solicitarCambioPerfil"
+              >
+                Solicitar cambio
+              </ion-button>
+            </div>
+            <p v-if="mensajePerfil" class="error-text">{{ mensajePerfil }}</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header>
             <ion-card-title>Chat y avisos</ion-card-title>
         </ion-card-header>
 
@@ -59,6 +118,7 @@
                 Recibir notificaciones
             </ion-toggle>
         </ion-card-content>
+      </ion-card>
 
         <ion-card>
             <ion-card-header>
@@ -89,7 +149,6 @@
                 </p>
             </ion-card-content>
         </ion-card>
-      </ion-card>
     </ion-content>
   </ion-page>
 </template>
@@ -110,7 +169,7 @@ import {
   IonButton
 } from '@ionic/vue';
 
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 
 import {
     aplicarConfiguracion,
@@ -119,6 +178,11 @@ import {
 } from '@/services/configuracion';
 import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
+import { sincronizarUsuarioLocal } from '@/services/perfil';
+import { GRADOS_OPCIONES, GRUPOS_OPCIONES } from '@/utils/perfilOpciones';
+
+const gradosOpciones = GRADOS_OPCIONES;
+const gruposOpciones = GRUPOS_OPCIONES;
 
 const tema = ref<TemaPreferencia>('sistema');
 const tamanoLetra = ref('normal');
@@ -128,6 +192,97 @@ const notificaciones = ref(true);
 const cargandoConfig = ref(true);
 
 const token = localStorage.getItem('token');
+const usuarioLocal = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+const perfilActual = ref<any>(null);
+const solicitudPendiente = ref<any>(null);
+const perfilUsername = ref('');
+const perfilGrado = ref('');
+const perfilGrupo = ref('');
+const mensajePerfil = ref('');
+
+const esAdmin = computed(() => perfilActual.value?.rol === 'admin');
+const esAlumno = computed(() => perfilActual.value?.rol === 'alumno');
+
+const cargarPerfil = async () => {
+  try {
+    const res = await fetch('https://backend-nexo.onrender.com/perfil/mi-perfil', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    perfilActual.value = data.perfil;
+    solicitudPendiente.value = data.solicitudPendiente;
+    perfilUsername.value = data.perfil.username || '';
+    perfilGrado.value = data.perfil.grado != null ? String(data.perfil.grado) : '';
+    perfilGrupo.value = data.perfil.grupo || '';
+    sincronizarUsuarioLocal(data.perfil);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const guardarPerfilDirecto = async () => {
+  if (!esAdmin.value) return;
+  mensajePerfil.value = '';
+  try {
+    const res = await fetch(
+      `https://backend-nexo.onrender.com/admin/usuarios/${usuarioLocal.id}/perfil`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: perfilUsername.value,
+        }),
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      mensajePerfil.value = data.mensaje || 'No se pudo guardar';
+      await mostrarToast(mensajePerfil.value, 'danger');
+      return;
+    }
+    perfilActual.value = data.perfil;
+    sincronizarUsuarioLocal(data.perfil);
+    await mostrarToast('Perfil actualizado', 'success');
+  } catch {
+    await mostrarToast('Error de conexión', 'danger');
+  }
+};
+
+const solicitarCambioPerfil = async () => {
+  mensajePerfil.value = '';
+  try {
+    const res = await fetch(
+      'https://backend-nexo.onrender.com/perfil/solicitud-cambio',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: perfilUsername.value,
+          grado: perfilGrado.value,
+          grupo: perfilGrupo.value,
+        }),
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      mensajePerfil.value = data.mensaje || 'No se pudo enviar';
+      await mostrarToast(mensajePerfil.value, 'danger');
+      return;
+    }
+    await mostrarToast(data.mensaje, 'success');
+    await cargarPerfil();
+  } catch {
+    await mostrarToast('Error de conexión', 'danger');
+  }
+};
 
 const cargarConfiguracion = async () => {
     try {
@@ -227,6 +382,7 @@ const cambiarPassword = async () => {
 };
 
 onMounted(() => {
+    cargarPerfil();
     cargarConfiguracion();
 });
 
