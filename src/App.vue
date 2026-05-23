@@ -48,10 +48,25 @@ import {
 
 import { useRouter } from 'vue-router';
 import { menuController } from '@ionic/vue';
+import { onMounted } from 'vue';
 import { initTemaLocal } from '@/services/configuracion';
 import { mostrarToast } from '@/services/feedback';
+import { iniciarNotificacionesPush } from '@/services/pushNotification';
+import {
+  registrarRouterPush,
+  procesarNavegacionPendiente,
+} from '@/services/navegacionPush';
 
 const router = useRouter();
+
+onMounted(async () => {
+  registrarRouterPush(router);
+
+  if (localStorage.getItem('token')) {
+    await iniciarNotificacionesPush();
+    await procesarNavegacionPendiente();
+  }
+});
 
 const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
 

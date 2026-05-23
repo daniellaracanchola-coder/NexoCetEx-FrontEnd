@@ -4,7 +4,8 @@
       <AppPageHeader title="Muro" /> 
     </ion-header> 
 
-    <ion-content :fullscreen="true" class="avisos"> 
+    <ion-content :fullscreen="true" class="avisos" :class="{ 'vista-solo-lectura': modoOffline }">
+      <BannerOffline :activo="modoOffline" :fecha="fechaRespaldo" />
       <ion-header collapse="condense"> 
         <ion-toolbar> 
           <ion-title size="large">Blank</ion-title> 
@@ -24,7 +25,7 @@
         />
       </div>
       <div>
-        <div class="btn-solo" v-if="usuario?.rol === 'admin' || usuario?.rol === 'profesor'">
+        <div class="btn-solo" v-if="!modoOffline && (usuario?.rol === 'admin' || usuario?.rol === 'profesor')">
           <ion-button @click="abrirMFun">Crear anuncios</ion-button>
         </div>
         <ion-modal :is-open="abrirM">
@@ -86,7 +87,7 @@
           </ion-card-header>
 
           <ion-card-content>
-            {{ anuncio.conte}}
+            <TextoConEnlaces :texto="anuncio.conte" tag="div" class="aviso-contenido" />
             <ion-badge color="medium"
             v-if="anuncio.rolDes !== 'todos'">
               {{ anuncio.rolDes }}
@@ -104,11 +105,23 @@
               Leido 
             </ion-badge>
             
-            <div v-if="usuario?.rol === 'admin'">
+            <div v-if="usuario?.rol === 'admin'" class="admin-aviso-meta">
+              <p v-if="anuncio.pendientesLectura > 0" class="muted-text">
+                {{ anuncio.pendientesLectura }} usuario(s) sin marcar como leído
+              </p>
+              <p class="muted-text">Leído por:</p>
               <ion-badge
                 v-for="user in anuncio.vistosPor || []"
                 :key="user"
                 color="primary"
+                style="margin-right:5px;">
+                {{ user }}
+              </ion-badge>
+              <p v-if="anuncio.sinLeer?.length" class="muted-text">Pendientes:</p>
+              <ion-badge
+                v-for="user in anuncio.sinLeer || []"
+                :key="'pendiente-' + user"
+                color="warning"
                 style="margin-right:5px;">
                 {{ user }}
               </ion-badge>
@@ -120,7 +133,7 @@
 
           </ion-card-content>
 
-          <div class="btn-group btn-group--card">
+          <div v-if="!modoOffline" class="btn-group btn-group--card">
             <ion-button
               color="danger"
               v-if="usuario?.rol === 'admin' ||
@@ -133,6 +146,13 @@
               v-if="!anuncio.vistosPor?.includes(usuario?.username)"
               @click="anunLeido(anuncio)">
               Marcar como leido
+            </ion-button>
+
+            <ion-button
+              v-if="usuario?.rol === 'admin' && anuncio.pendientesLectura > 0"
+              color="tertiary"
+              @click="recordarLectura(anuncio)">
+              Recordar lectura
             </ion-button>
 
             <ion-button
@@ -175,8 +195,16 @@ import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
+import TextoConEnlaces from '@/components/TextoConEnlaces.vue';
+import BannerOffline from '@/components/BannerOffline.vue';
+import {
+  obtenerConCache,
+  clavesCache,
+  fetchJsonConAuth,
+  formatearFechaRespaldo,
+} from '@/services/cacheOffline';
 
-let intervalAvisos: any;
+let intervalAvisos: ReturnType<typeof setInterval> | null = null;
 
 const router = useRouter();
 
@@ -189,14 +217,26 @@ const nuevoConte = ref('');
 const rolDes = ref('todos');
 
 const anuncios = ref<any[]>([]);
+const modoOffline = ref(false);
+const fechaRespaldo = ref('');
 
 const errorA = ref('');
 
 const token = localStorage.getItem('token');
 
-
+function bloquearSiOffline(): boolean {
+  if (modoOffline.value) {
+    void mostrarToast(
+      'Sin conexión. Solo puedes ver los avisos guardados.',
+      'warning'
+    );
+    return true;
+  }
+  return false;
+}
 
 const guardarA = async () => {
+  if (bloquearSiOffline()) return;
   if (!nuevoTit.value || !nuevoConte.value) {
     errorA.value = 'Completa todos los datos';
     return;
@@ -242,6 +282,7 @@ const guardarA = async () => {
 };
 
 const eliminarAnun = async (id: number) => {
+  if (bloquearSiOffline()) return;
   try {
     const res = await fetch(
         `https://backend-nexo.onrender.com/avisos/${id}`,
@@ -279,10 +320,11 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    clearInterval(intervalAvisos);
-})
+    if (intervalAvisos) clearInterval(intervalAvisos);
+});
 
 const anunLeido = async (anuncio: any) => {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/avisos/${anuncio.id}/leido`,
@@ -309,7 +351,37 @@ const anunLeido = async (anuncio: any) => {
         console.error(error);
         await mostrarToast('Error de conexión', 'danger');
     }
-}; 
+};
+
+const recordarLectura = async (anuncio: any) => {
+    if (bloquearSiOffline()) return;
+    try {
+        const res = await fetch(
+            `https://backend-nexo.onrender.com/avisos/${anuncio.id}/recordar`,
+            {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            await mostrarToast(data.mensaje || 'No se pudo enviar el recordatorio', 'danger');
+            return;
+        }
+
+        await mostrarToast(
+            `Recordatorio enviado a ${data.enviados} usuario(s)`,
+            'success'
+        );
+    } catch (error) {
+        console.error(error);
+        await mostrarToast('Error de conexión', 'danger');
+    }
+};
 
 const abrirMFun = () => {
   errorA.value = '';
@@ -317,6 +389,7 @@ const abrirMFun = () => {
 };
 
 const cambiarTipo = async (anuncio: any) => {
+  if (bloquearSiOffline()) return;
   try {
     const res = await fetch(
         `https://backend-nexo.onrender.com/avisos/${anuncio.id}/tipo`,
@@ -351,24 +424,21 @@ const ordenarAnun = () => {
 
 const cargarAnun = async () => {
   try {
-    const res = await fetch(
-        'https://backend-nexo.onrender.com/avisos',
-        {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        }
+    const resultado = await obtenerConCache(
+      clavesCache.avisos(),
+      () => fetchJsonConAuth<any[]>('https://backend-nexo.onrender.com/avisos', token)
     );
-
-    if (!res.ok) {
-        console.error('Error al cargar avisos');
-        return;
-    }
-    anuncios.value = await res.json();
-
+    anuncios.value = resultado.data;
+    modoOffline.value = resultado.desdeCache;
+    fechaRespaldo.value = resultado.fechaCache
+      ? formatearFechaRespaldo(resultado.fechaCache)
+      : '';
     ordenarAnun();
   } catch (error) {
     console.error(error);
+    if (anuncios.value.length === 0) {
+      modoOffline.value = false;
+    }
   }
 };
 

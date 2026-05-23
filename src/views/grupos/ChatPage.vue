@@ -9,8 +9,9 @@
             </ion-toolbar>
         </ion-header>
 
-        <ion-content ref="contentRef" class="ion-padding chat-messages-content">
-            <ion-accordion-group>
+        <ion-content ref="contentRef" class="ion-padding chat-messages-content" :class="{ 'vista-solo-lectura': modoOffline }">
+            <BannerOffline :activo="modoOffline" :fecha="fechaRespaldo" />
+            <ion-accordion-group v-if="!modoOffline">
                 <ion-accordion value="admin-chat">
                     <ion-item slot="header">
                         <ion-label>Opciones del chat</ion-label>
@@ -102,14 +103,17 @@
                     }"
                 >
                     <strong>{{ mensaje.username }}</strong>
-                    <p>{{ mensaje.contenido }}</p>
+                    <TextoConEnlaces
+                        :texto="mensaje.contenido"
+                        tag="p"
+                    />
                     <small>{{ formatearFecha(mensaje.fecha) }}</small>
                 </div>
                 <div ref="finLista" class="chat-scroll-anchor" aria-hidden="true" />
             </div>
         </ion-content>
 
-        <ion-footer>
+        <ion-footer v-if="!modoOffline">
             <ion-toolbar class="chat-footer-toolbar">
                 <ion-input
                     v-model="nuevoMensaje"
@@ -148,11 +152,19 @@ import {
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { mostrarToast } from '@/services/feedback';
+import TextoConEnlaces from '@/components/TextoConEnlaces.vue';
+import BannerOffline from '@/components/BannerOffline.vue';
+import {
+    obtenerConCache,
+    clavesCache,
+    fetchJsonConAuth,
+    formatearFechaRespaldo,
+} from '@/services/cacheOffline';
 
 const route = useRoute();
 const router = useRouter();
 const token = localStorage.getItem('token');
-const chatId = route.params.id;
+const chatId = String(route.params.id);
 
 const usuarioActual = JSON.parse(localStorage.getItem('usuario') || 'null');
 
@@ -166,8 +178,21 @@ const usuariosEncontrados = ref<any[]>([]);
 const busqueda = ref('');
 const nuevoNombre = ref('');
 const mostrarConfirmacion = ref(false);
+const modoOffline = ref(false);
+const fechaRespaldo = ref('');
 
 let intervalMensajes: ReturnType<typeof setInterval> | null = null;
+
+function bloquearSiOffline(): boolean {
+    if (modoOffline.value) {
+        void mostrarToast(
+            'Sin conexión. Solo puedes ver los mensajes guardados.',
+            'warning'
+        );
+        return true;
+    }
+    return false;
+}
 
 const formatearFecha = (fecha: string) => {
     if (!fecha) return '';
@@ -196,16 +221,21 @@ const cargarMensajes = async (forzarScroll = false) => {
                 ? mensajes.value[mensajes.value.length - 1].id
                 : 0;
 
-        const res = await fetch(
-            `https://backend-nexo.onrender.com/chats/${chatId}/mensajes`,
-            {
-                headers: { Authorization: `Bearer ${token}` },
-            }
+        const resultado = await obtenerConCache(
+            clavesCache.mensajesChat(chatId),
+            () =>
+                fetchJsonConAuth<any[]>(
+                    `https://backend-nexo.onrender.com/chats/${chatId}/mensajes`,
+                    token
+                )
         );
 
-        if (!res.ok) return;
+        const data = resultado.data;
+        modoOffline.value = resultado.desdeCache;
+        fechaRespaldo.value = resultado.fechaCache
+            ? formatearFechaRespaldo(resultado.fechaCache)
+            : '';
 
-        const data = await res.json();
         const huboCambio =
             data.length !== cantidadAnterior ||
             (data.length > 0 && data[data.length - 1].id !== ultimoIdAnterior);
@@ -222,6 +252,7 @@ const cargarMensajes = async (forzarScroll = false) => {
 
 const enviarMensaje = async () => {
     if (!nuevoMensaje.value.trim()) return;
+    if (bloquearSiOffline()) return;
 
     try {
         const res = await fetch(
@@ -252,17 +283,22 @@ const enviarMensaje = async () => {
 
 const cargarIntegrantes = async () => {
     try {
-        const res = await fetch(
-            `https://backend-nexo.onrender.com/chats/${chatId}/integrantes`,
-            { headers: { Authorization: `Bearer ${token}` } }
+        const resultado = await obtenerConCache(
+            clavesCache.integrantesChat(chatId),
+            () =>
+                fetchJsonConAuth<any[]>(
+                    `https://backend-nexo.onrender.com/chats/${chatId}/integrantes`,
+                    token
+                )
         );
-        integrantes.value = await res.json();
+        integrantes.value = resultado.data;
     } catch (error) {
         console.error(error);
     }
 };
 
 const buscarUsuarios = async () => {
+    if (bloquearSiOffline()) return;
     if (!busqueda.value) {
         usuariosEncontrados.value = [];
         return;
@@ -279,6 +315,7 @@ const buscarUsuarios = async () => {
 };
 
 const agregarIntegrante = async (usuarioId: number) => {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/chats/${chatId}/integrantes`,
@@ -306,6 +343,7 @@ const agregarIntegrante = async (usuarioId: number) => {
 };
 
 const eliminarIntegrante = async (usuarioId: number) => {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/chats/${chatId}/integrantes/${usuarioId}`,
@@ -328,6 +366,7 @@ const eliminarIntegrante = async (usuarioId: number) => {
 
 const cambiarNombre = async () => {
     if (!nuevoNombre.value) return;
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/chats/${chatId}/nombre`,
@@ -353,6 +392,7 @@ const cambiarNombre = async () => {
 };
 
 const eliminarChat = async () => {
+    if (bloquearSiOffline()) return;
     mostrarConfirmacion.value = false;
     try {
         const res = await fetch(`https://backend-nexo.onrender.com/chats/${chatId}`, {

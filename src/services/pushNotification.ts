@@ -1,7 +1,55 @@
 import { PushNotifications } from '@capacitor/push-notifications';
+import {
+  extraerDatosNotificacion,
+  navegarDesdeNotificacion,
+} from '@/services/navegacionPush';
+
+let listenersRegistrados = false;
+
+function registrarListeners() {
+  if (listenersRegistrados) return;
+  listenersRegistrados = true;
+
+  PushNotifications.addListener('registration', async (token) => {
+    try {
+      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+      if (!usuario?.id) return;
+
+      const respuesta = await fetch(
+        'https://backend-nexo.onrender.com/api/usuarios/guardar-token',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: usuario.id,
+            token: token.value,
+          }),
+        }
+      );
+
+      if (!respuesta.ok) {
+        console.error('Error al guardar token push:', respuesta.status);
+      }
+    } catch (error) {
+      console.error('Error conectando al backend:', error);
+    }
+  });
+
+  PushNotifications.addListener('registrationError', (error) => {
+    console.error('Error al registrar push:', error);
+  });
+
+  PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+    const datos = extraerDatosNotificacion(action.notification);
+    void navegarDesdeNotificacion(datos);
+  });
+}
 
 export async function iniciarNotificacionesPush() {
-  console.log('Iniciando Push Notifications...');
+  registrarListeners();
 
   let permStatus = await PushNotifications.checkPermissions();
 
@@ -14,55 +62,5 @@ export async function iniciarNotificacionesPush() {
     return;
   }
 
-  console.log('Registrando con Firebase...');
-
   await PushNotifications.register();
-
-  console.log('Registro solicitado');
-
-  PushNotifications.addListener('registration', async (token) => {
-    console.log('========================');
-    console.log('TOKEN FIREBASE');
-    console.log(token.value);
-    console.log('========================');
-
-    try {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-
-      console.log('Usuario localStorage:', JSON.stringify(usuario, null, 2));
-
-      const respuesta = await fetch('https://backend-nexo.onrender.com/api/usuarios/guardar-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: usuario.id,
-          token: token.value
-        })
-      });
-
-      console.log('STATUS BACKEND:', respuesta.status);
-
-      const texto = await respuesta.text();
-      console.log('RESPUESTA BACKEND:', texto);
-    } catch (error) {
-      console.error('Error conectando al backend:', error);
-    }
-  });
-
-  PushNotifications.addListener('registrationError', (error) => {
-    console.error('Error al registrar push:', error);
-  });
-
-  PushNotifications.addListener('pushNotificationReceived', (notification) => {
-    console.log(
-      'Notificación recibida:',
-      JSON.stringify(notification, null, 2)
-    );
-  });
-
-  PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-    console.log('Notificación abierta:', notification);
-  });
 }

@@ -4,9 +4,10 @@
       <AppPageHeader title="Grupos" />
     </ion-header>
 
-    <ion-content class="group">
+    <ion-content class="group" :class="{ 'vista-solo-lectura': modoOffline }">
+        <BannerOffline :activo="modoOffline" :fecha="fechaRespaldo" />
         <h2>Grupos</h2>
-        <ion-accordion-group>
+        <ion-accordion-group v-if="!modoOffline">
             <ion-accordion value="grupos">
                 <ion-item slot="header">
                     <ion-label>Crear chats</ion-label>
@@ -136,8 +137,19 @@ import { useRouter } from 'vue-router';
 import { onIonViewWillEnter } from '@ionic/vue';
 import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
+import BannerOffline from '@/components/BannerOffline.vue';
+import {
+  obtenerConCache,
+  clavesCache,
+  fetchJsonConAuth,
+  formatearFechaRespaldo,
+} from '@/services/cacheOffline';
 
 const router = useRouter();
+const usuarioId = JSON.parse(localStorage.getItem('usuario') || '{}')?.id ?? 0;
+
+const modoOffline = ref(false);
+const fechaRespaldo = ref('');
 
 const entrarChat = (chatId: number) => {
   router.push(`/chat/${chatId}`);
@@ -168,9 +180,21 @@ const busqueda = ref('');
 const usuariosEncontrados = ref<any[]>([]);
 const chats = ref<any[]>([]);
 
-let intervalGrupos: any;
+let intervalGrupos: ReturnType<typeof setInterval> | null = null;
+
+function bloquearSiOffline(): boolean {
+  if (modoOffline.value) {
+    void mostrarToast(
+      'Sin conexión. Solo puedes ver tus chats guardados.',
+      'warning'
+    );
+    return true;
+  }
+  return false;
+}
 
 const crearGrupoAula = async () => {
+    if (modoOffline.value) return;
     try{
         await fetch(
             'https://backend-nexo.onrender.com/chats/aula',
@@ -188,21 +212,26 @@ const crearGrupoAula = async () => {
 
 const cargarChats = async () => {
     try {
-        const res = await fetch(
-            'https://backend-nexo.onrender.com/chats/mis-chats',
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
+        const resultado = await obtenerConCache(
+            clavesCache.chats(usuarioId),
+            () =>
+                fetchJsonConAuth<any[]>(
+                    'https://backend-nexo.onrender.com/chats/mis-chats',
+                    token
+                )
         );
-        chats.value = await res.json();
+        chats.value = resultado.data;
+        modoOffline.value = resultado.desdeCache;
+        fechaRespaldo.value = resultado.fechaCache
+            ? formatearFechaRespaldo(resultado.fechaCache)
+            : '';
     } catch (error) {
         console.error(error);
     }
 };
 
 const buscarUsuarios = async () => {
+    if (bloquearSiOffline()) return;
     if (!busqueda.value) {
         usuariosEncontrados.value = [];
         return;
@@ -224,6 +253,7 @@ const buscarUsuarios = async () => {
 };
 
 const crearChatDirecto = async (usuarioDestinoId: number) =>  {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             'https://backend-nexo.onrender.com/chats/directo',
@@ -264,7 +294,7 @@ onIonViewWillEnter(() => {
 });
 
 onUnmounted(() => {
-    clearInterval(intervalGrupos);
+    if (intervalGrupos) clearInterval(intervalGrupos);
 });
 
 const nombreGrupo = ref('');
@@ -281,6 +311,7 @@ const seleccionarUsuario = (id: number) => {
 };
 
 const crearGrupo = async () => {
+    if (bloquearSiOffline()) return;
     if (!nombreGrupo.value || usuariosSeleccionados.value.length === 0) {
         await mostrarToast('Indica un nombre de grupo y al menos un usuario', 'warning');
         return;

@@ -21,7 +21,7 @@
                 <ion-select-option value="sistema">Según el sistema</ion-select-option>
                 <ion-select-option value="claro">Modo claro</ion-select-option>
                 <ion-select-option value="oscuro">Modo oscuro</ion-select-option>
-                <ion-select-option value="extra">Mensajería (extra)</ion-select-option>
+                <ion-select-option value="extra">Mensajería (morado)</ion-select-option>
             </ion-select>
         </ion-card-content>
       </ion-card>

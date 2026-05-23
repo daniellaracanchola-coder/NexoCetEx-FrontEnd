@@ -4,7 +4,8 @@
             <AppPageHeader title="Administración" :show-logo="false" :show-brand="false" />
         </ion-header>
         
-        <ion-content class="ion-padding">
+        <ion-content class="ion-padding" :class="{ 'vista-solo-lectura': modoOffline }">
+            <BannerOffline :activo="modoOffline" :fecha="fechaRespaldo" />
             <div class="admin-tabs">
             <ion-button
                 :fill="seccion === 'pendientes' ? 'solid' : 'outline'"
@@ -48,6 +49,7 @@
                     </p>
 
                     <ion-select
+                        v-if="!modoOffline"
                         label="Cambiar rol"
                         placeholder="Selecciona nuevo rol"
                         fill="outline"
@@ -67,7 +69,7 @@
                         </ion-select-option>
                     </ion-select>
 
-                    <div class="btn-group btn-group--card">
+                    <div v-if="!modoOffline" class="btn-group btn-group--card">
                       <ion-button color="success" @click="aprobar(usuario.id)">
                         Aprobar
                       </ion-button>
@@ -108,6 +110,7 @@
                     </p>
 
                     <ion-select
+                        v-if="!modoOffline"
                         label="Cambiar rol"
                         placeholder="Selecciona nuevo rol"
                         fill="outline"
@@ -126,7 +129,7 @@
                             Admin
                         </ion-select-option>
                     </ion-select>
-                    <div v-if="usuario.id !== usuarioActual.id" class="btn-solo">
+                    <div v-if="!modoOffline && usuario.id !== usuarioActual.id" class="btn-solo">
                       <ion-button color="danger" @click="darBaja(usuario.id)">
                         Dar de baja
                       </ion-button>
@@ -155,13 +158,34 @@ import {
 import { ref, onMounted } from 'vue';
 import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
+import BannerOffline from '@/components/BannerOffline.vue';
+import {
+    obtenerConCache,
+    clavesCache,
+    fetchJsonConAuth,
+    formatearFechaRespaldo,
+} from '@/services/cacheOffline';
 
 const token = localStorage.getItem('token');
+const modoOffline = ref(false);
+const fechaRespaldo = ref('');
+
+function bloquearSiOffline(): boolean {
+    if (modoOffline.value) {
+        void mostrarToast(
+            'Sin conexión. Solo puedes ver la lista guardada.',
+            'warning'
+        );
+        return true;
+    }
+    return false;
+}
 const usuarioActual = JSON.parse(
     localStorage.getItem('usuario') || '{}'
 );
 
 const aprobar = async (id: number) => {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/admin/aprobar/${id}`,
@@ -186,6 +210,7 @@ const aprobar = async (id: number) => {
 };
 
 const rechazar = async (id: number) => {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/admin/rechazar/${id}`,
@@ -213,6 +238,7 @@ const cambiarRol = async (
     id: number,
     rol: string
 ) => {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/admin/cambiar-rol/${id}`,
@@ -252,19 +278,27 @@ const usuariosActuales = ref<any[]>([]);
 const seccion = ref('pendientes');
 
 const cargarPendientes = async () => {
-    const res = await fetch(
-        'https://backend-nexo.onrender.com/admin/pendientes',
-        {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        }
-    );
-
-    usuariosPendientes.value = await res.json();
+    try {
+        const resultado = await obtenerConCache(
+            clavesCache.adminPendientes(),
+            () =>
+                fetchJsonConAuth<any[]>(
+                    'https://backend-nexo.onrender.com/admin/pendientes',
+                    token
+                )
+        );
+        usuariosPendientes.value = resultado.data;
+        modoOffline.value = resultado.desdeCache;
+        fechaRespaldo.value = resultado.fechaCache
+            ? formatearFechaRespaldo(resultado.fechaCache)
+            : '';
+    } catch (error) {
+        console.error(error);
+    }
 };
 
 const darBaja = async (id: number) => {
+    if (bloquearSiOffline()) return;
     try {
         const res = await fetch(
             `https://backend-nexo.onrender.com/admin/baja/${id}`,
@@ -288,16 +322,25 @@ const darBaja = async (id: number) => {
 };
 
 const cargarUsuariosActuales = async () => {
-    const res = await fetch(
-        'https://backend-nexo.onrender.com/admin/usuarios',
-        {
-            headers: {
-                Authorization: `Bearer ${token}`
+    try {
+        const resultado = await obtenerConCache(
+            clavesCache.adminUsuarios(),
+            () =>
+                fetchJsonConAuth<any[]>(
+                    'https://backend-nexo.onrender.com/admin/usuarios',
+                    token
+                )
+        );
+        usuariosActuales.value = resultado.data;
+        if (resultado.desdeCache) {
+            modoOffline.value = true;
+            if (resultado.fechaCache) {
+                fechaRespaldo.value = formatearFechaRespaldo(resultado.fechaCache);
             }
         }
-    );
-
-    usuariosActuales.value = await res.json();
+    } catch (error) {
+        console.error(error);
+    }
 };
 
 </script>

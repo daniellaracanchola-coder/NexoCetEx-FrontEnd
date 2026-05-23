@@ -49,6 +49,7 @@ import { useRouter } from 'vue-router';
 import { iniciarNotificacionesPush } from '@/services/pushNotification';
 import { cargarConfiguracion } from '@/services/configuracion';
 import { mostrarToast } from '@/services/feedback';
+import { resolverRutaTrasLogin } from '@/services/navegacionPush';
 import AppPageHeader from '@/components/AppPageHeader.vue';
 
 const router = useRouter();
@@ -92,7 +93,7 @@ const login = async () => {
 
     errorMensaje.value = '';
     await mostrarToast('Sesión iniciada correctamente', 'success');
-    await router.push('/home');
+    await router.push(resolverRutaTrasLogin());
   } catch (error) {
     console.error(error);
     errorMensaje.value = 'Error al conectar con el servidor';

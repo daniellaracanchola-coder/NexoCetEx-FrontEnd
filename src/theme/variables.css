@@ -62,36 +62,44 @@
   --ion-border-color: var(--nexo-border);
 }
 
-/* ─── Tema extra: Mensajería (paleta tipo apps de chat) ─── */
+/* ─── Tema extra: Mensajería morada (comunidad / tecnología) ───
+   Distinto del modo claro (azul índigo + gris). Asociado a apps de chat
+   y comunidad: violeta = innovación, verde esmeralda = respuesta ágil. */
 body.tema-extra {
-  --ion-color-primary: #007aff;
-  --ion-color-primary-rgb: 0, 122, 255;
-  --ion-color-primary-shade: #0066d6;
-  --ion-color-primary-tint: #1a88ff;
+  --ion-color-primary: #7c3aed;
+  --ion-color-primary-rgb: 124, 58, 237;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #6d33d1;
+  --ion-color-primary-tint: #894eef;
 
-  --ion-color-secondary: #34c759;
-  --ion-color-secondary-rgb: 52, 199, 89;
-  --ion-color-secondary-shade: #2eb04e;
-  --ion-color-secondary-tint: #48cd6a;
+  --ion-color-secondary: #10b981;
+  --ion-color-secondary-rgb: 16, 185, 129;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #0ea372;
+  --ion-color-secondary-tint: #28c091;
 
-  --ion-color-tertiary: #5ac8fa;
-  --ion-color-tertiary-rgb: 90, 200, 250;
-  --ion-color-tertiary-shade: #4fb0dc;
-  --ion-color-tertiary-tint: #6bcefb;
+  --ion-color-tertiary: #a78bfa;
+  --ion-color-tertiary-rgb: 167, 139, 250;
+  --ion-color-tertiary-contrast: #1e1b4b;
+  --ion-color-tertiary-contrast-rgb: 30, 27, 75;
+  --ion-color-tertiary-shade: #937ae8;
+  --ion-color-tertiary-tint: #b19afb;
 
-  --nexo-page-bg: #f0f2f5;
-  --nexo-surface: #ffffff;
-  --nexo-surface-muted: #e9e9eb;
-  --nexo-text: #1c1c1e;
-  --nexo-text-muted: #6e6e73;
-  --nexo-border: #d1d1d6;
-  --nexo-toolbar-bg: #007aff;
+  --nexo-page-bg: #f3e8ff;
+  --nexo-surface: #faf5ff;
+  --nexo-surface-muted: #ede9fe;
+  --nexo-text: #2e1065;
+  --nexo-text-muted: #6b5b8a;
+  --nexo-border: #ddd6fe;
+  --nexo-toolbar-bg: #6d28d9;
   --nexo-toolbar-text: #ffffff;
-  --nexo-accent-soft: #e7f3ff;
-  --nexo-accent-panel: #dcf8c6;
-  --nexo-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --nexo-bubble-out: #dcf8c6;
-  --nexo-bubble-in: #ffffff;
+  --nexo-accent-soft: #ede9fe;
+  --nexo-accent-panel: #ddd6fe;
+  --nexo-shadow: 0 2px 14px rgba(109, 40, 217, 0.12);
+  --nexo-bubble-out: #e9d5ff;
+  --nexo-bubble-in: #faf5ff;
 
   --ion-background-color: var(--nexo-page-bg);
   --ion-text-color: var(--nexo-text);
@@ -103,7 +111,7 @@ body.tema-extra {
 }
 
 body.tema-extra ion-card {
-  border-color: #c7e9ff;
+  border-color: #c4b5fd;
 }
 
 body.tema-extra .chat-list-card {
@@ -111,9 +119,17 @@ body.tema-extra .chat-list-card {
   border-left: 4px solid var(--ion-color-primary);
 }
 
+body.tema-extra .chat-list-card--unread {
+  background: var(--nexo-accent-soft);
+}
+
 body.tema-extra .admin-chat,
 body.tema-extra .duda-banner {
-  background: var(--nexo-accent-soft);
+  background: var(--nexo-accent-panel);
+}
+
+body.tema-extra .duda-banner p {
+  color: var(--ion-color-primary-shade);
 }
 
 /* Tokens en modo oscuro (Ionic + app) */
@@ -294,6 +310,38 @@ ion-accordion-group {
 
 .page-intro strong {
   color: var(--nexo-text);
+}
+
+.banner-offline {
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  border-radius: var(--nexo-radius);
+  background: var(--nexo-accent-panel);
+  border: 1px solid var(--ion-color-warning);
+}
+
+.banner-offline__titulo {
+  margin: 0 0 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ion-color-warning-shade, #b45309);
+}
+
+.banner-offline__texto {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--nexo-text);
+}
+
+.vista-solo-lectura ion-footer,
+.vista-solo-lectura .btn-solo,
+.vista-solo-lectura .btn-group {
+  display: none;
+}
+
+.vista-solo-lectura ion-accordion-group {
+  display: none;
 }
 
 /* ─── Barra superior (logo + sección + marca) ─── */
@@ -547,7 +595,8 @@ ion-toolbar {
 }
 
 body.tema-extra .chat-bubble--propio {
-  background: var(--nexo-bubble-out, #dcf8c6);
+  background: var(--nexo-bubble-out);
+  border-color: var(--ion-color-primary-shade);
 }
 
 .chat-bubble strong {
@@ -565,6 +614,27 @@ body.tema-extra .chat-bubble--propio {
 .chat-bubble small {
   color: var(--nexo-text-muted);
   font-size: 0.7rem;
+}
+
+.texto-con-enlaces {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.nexo-link {
+  color: var(--ion-color-primary);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.nexo-link:active {
+  opacity: 0.85;
+}
+
+.aviso-contenido {
+  display: block;
+  margin-bottom: 10px;
+  line-height: 1.5;
 }
 
 /* Nexo Ayuda */
@@ -594,6 +664,110 @@ html.ion-palette-dark .duda-banner p {
 
 .duda-card--importante {
   border: 2px solid var(--ion-color-warning) !important;
+}
+
+.duda-card__header {
+  padding-bottom: 0;
+}
+
+.duda-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.duda-card__autor {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ion-color-primary);
+}
+
+.duda-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.duda-card__pregunta {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: var(--nexo-radius-sm);
+  background: var(--nexo-surface-muted);
+  border-left: 4px solid var(--ion-color-primary);
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--nexo-text);
+}
+
+.duda-respuestas {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--nexo-radius-sm);
+  background: var(--nexo-accent-soft);
+  border: 1px solid var(--nexo-border);
+}
+
+.duda-respuestas__titulo {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--nexo-text-muted);
+}
+
+.duda-respuesta {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--nexo-radius-sm);
+  background: var(--nexo-surface);
+  border: 1px solid var(--nexo-border);
+}
+
+.duda-respuesta:last-child {
+  margin-bottom: 0;
+}
+
+.duda-respuesta strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ion-color-secondary);
+  margin-bottom: 4px;
+}
+
+.duda-respuesta p {
+  margin: 0 0 4px;
+  line-height: 1.4;
+  color: var(--nexo-text);
+}
+
+.duda-respuesta small {
+  color: var(--nexo-text-muted);
+  font-size: 0.7rem;
+}
+
+.duda-responder {
+  margin-bottom: 12px;
+}
+
+.nexo-pausa-aviso {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ion-color-tertiary);
+  margin: 0 16px 8px;
+  font-style: italic;
+}
+
+body.tema-extra .duda-card__pregunta {
+  border-left-color: var(--ion-color-primary);
+}
+
+body.tema-extra .duda-respuestas {
+  background: var(--nexo-accent-panel);
+  border-color: var(--nexo-border);
 }
 
 /* Config */
