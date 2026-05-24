@@ -18,7 +18,7 @@
         <ion-list lines="none">
           <ion-item button @click="irA('/home')">Muro</ion-item>
           <ion-item button @click="irA('/grupos')">Grupos</ion-item>
-          <ion-item button @click="irA('/nexo-a')">Nexo de Ayuda</ion-item>
+          <ion-item button @click="irA('/nexo-a')">Nexo de ayuda</ion-item>
           <ion-item button @click="irA('/config')">Configuración</ion-item>
           <ion-item v-if="usuario?.rol === 'admin'" button @click="irA('/admin')">
             Administración

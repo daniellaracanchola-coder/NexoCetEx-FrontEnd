@@ -6,12 +6,7 @@
 
     <ion-content :fullscreen="true" class="avisos" :class="{ 'vista-solo-lectura': modoOffline }">
       <BannerOffline :activo="modoOffline" :fecha="fechaRespaldo" />
-      <ion-header collapse="condense"> 
-        <ion-toolbar> 
-          <ion-title size="large">Blank</ion-title> 
-        </ion-toolbar> 
-      </ion-header> 
-      
+
       <div id="container">
         <p class="page-intro">
           En esta sección verás los anuncios.
@@ -39,7 +34,7 @@
 
             <ion-input 
               v-model="nuevoTit" 
-              placeholder="Titulo"
+              placeholder="Título"
               @ionInput="errorA = ''">
             </ion-input>
             <ion-textarea 
@@ -50,7 +45,7 @@
             <ion-item>
               <ion-label>Dirigido a:</ion-label>
               <ion-select
-              v-model="rolDes" placeholder="Elige a quien:">
+              v-model="rolDes" placeholder="Elige a quién:">
                 <ion-select-option value="todos">Todos</ion-select-option>
                 <ion-select-option value="alumno">Alumnos</ion-select-option>
                 <ion-select-option value="profesor">Profesores</ion-select-option>
@@ -129,7 +124,7 @@
             <ion-badge 
               color="success"
               v-if="anuncio.vistosPor?.includes(usuario?.username)">
-              Leido 
+              Leído 
             </ion-badge>
             
             <div v-if="usuario?.rol === 'admin'" class="admin-aviso-meta">
@@ -172,7 +167,7 @@
             <ion-button
               v-if="!anuncio.vistosPor?.includes(usuario?.username)"
               @click="anunLeido(anuncio)">
-              Marcar como leido
+              Marcar como leído
             </ion-button>
 
             <ion-button
@@ -192,7 +187,9 @@
 
         </ion-card>
       </div>
-    </ion-content> 
+
+      <AppContactFooter />
+    </ion-content>
   </ion-page> 
 </template> 
 
@@ -201,9 +198,9 @@ import {
   IonContent, 
   IonHeader, 
   IonPage, 
-  IonTitle, 
-  IonToolbar, 
   IonModal,
+  IonToolbar,
+  IonTitle,
   IonInput,
   IonTextarea,
   IonCard,
@@ -224,6 +221,7 @@ import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
 import TextoConEnlaces from '@/components/TextoConEnlaces.vue';
 import BannerOffline from '@/components/BannerOffline.vue';
+import AppContactFooter from '@/components/AppContactFooter.vue';
 import {
   obtenerConCache,
   clavesCache,
@@ -320,7 +318,7 @@ const guardarA = async () => {
         await mostrarToast('Anuncio publicado', 'success');
     } catch (error) {
         console.error(error);
-        errorA.value = 'Error al conectarse con el servidor';
+        errorA.value = 'Error al conectar con el servidor';
     }
 };
 

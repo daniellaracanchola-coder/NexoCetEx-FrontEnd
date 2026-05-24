@@ -43,9 +43,14 @@ export async function mostrarRegistroEnviado(router: Router, mensajeServidor?: s
   const detalle =
     mensajeServidor?.trim() ||
     'Tu solicitud quedó registrada en el sistema.';
+  const yaMencionaAutorizacion =
+    /administrador|autoriz/i.test(detalle);
+  const cierreAutorizacion = yaMencionaAutorizacion
+    ? ''
+    : '\n\nUn administrador debe autorizar tu cuenta antes de que puedas iniciar sesión.';
   const alert = await alertController.create({
     header: 'Registro enviado',
-    message: `${detalle}\n\nUn administrador debe autorizar tu cuenta antes de que puedas iniciar sesión. Espera la aprobación; si no ves cambios en unos días, contacta a la escuela.`,
+    message: `${detalle}${cierreAutorizacion}\n\nSi no ves cambios en unos días, escribe a nexocetexgestion@gmail.com.`,
     buttons: [
       {
         text: 'Ir a iniciar sesión',

@@ -126,7 +126,7 @@
         }
 
         if (rol.value === 'alumno' && (!grado.value || !grupo.value)) {
-            mensaje.value = ' Grado y grupo son obligatorios para alumnos';
+            mensaje.value = 'Grado y grupo son obligatorios para alumnos';
             return;
         }
 

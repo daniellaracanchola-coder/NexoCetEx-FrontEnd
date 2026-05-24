@@ -31,6 +31,8 @@
       <p v-if="errorMensaje" class="error-text">
         {{ errorMensaje }}
       </p>
+
+      <AppContactFooter />
     </ion-content>
   </ion-page>
 </template>
@@ -51,6 +53,7 @@ import { cargarConfiguracion } from '@/services/configuracion';
 import { mostrarToast } from '@/services/feedback';
 import { resolverRutaTrasLogin } from '@/services/navegacionPush';
 import AppPageHeader from '@/components/AppPageHeader.vue';
+import AppContactFooter from '@/components/AppContactFooter.vue';
 
 const router = useRouter();
 

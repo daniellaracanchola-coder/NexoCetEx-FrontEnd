@@ -77,7 +77,7 @@
             <ion-alert
                 :is-open="mostrarConfirmacion"
                 header="Eliminar chat"
-                message="¿Seguro que quieres eliminar este chat? Esta accion no se puede revertir despues."
+                message="¿Seguro que quieres eliminar este chat? Esta acción no se puede revertir después."
                 :buttons="[
                     {
                         text: 'Cancelar',

@@ -144,6 +144,8 @@
           </div>
         </ion-content>
       </ion-modal>
+
+      <AppContactFooter />
     </ion-content>
   </ion-page>
 </template>
@@ -168,6 +170,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { mostrarToast } from '@/services/feedback';
 import AppPageHeader from '@/components/AppPageHeader.vue';
 import BannerOffline from '@/components/BannerOffline.vue';
+import AppContactFooter from '@/components/AppContactFooter.vue';
 import {
   obtenerConCache,
   clavesCache,
