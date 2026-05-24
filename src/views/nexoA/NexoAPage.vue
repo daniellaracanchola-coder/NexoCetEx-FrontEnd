@@ -1,10 +1,10 @@
 <template>
-  <ion-page>
+  <ion-page :class="{ 'vista-solo-lectura': modoOffline }">
     <ion-header>
       <AppPageHeader title="Nexo de ayuda" />
     </ion-header>
 
-    <ion-content class="nexoA" :class="{ 'vista-solo-lectura': modoOffline }">
+    <ion-content class="nexoA">
       <BannerOffline :activo="modoOffline" :fecha="fechaRespaldo" />
       <p class="page-intro">
         Centro de apoyo a estudiantes: comparte dudas escolares y recibe apoyo
@@ -144,9 +144,9 @@
           </div>
         </ion-content>
       </ion-modal>
-
-      <AppContactFooter />
     </ion-content>
+
+    <AppContactFooter />
   </ion-page>
 </template>
 

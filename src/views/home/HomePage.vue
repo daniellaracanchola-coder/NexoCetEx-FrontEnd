@@ -1,10 +1,10 @@
 <template> 
-  <ion-page> 
+  <ion-page :class="{ 'vista-solo-lectura': modoOffline }"> 
     <ion-header :translucent="true"> 
       <AppPageHeader title="Muro" /> 
     </ion-header> 
 
-    <ion-content :fullscreen="true" class="avisos" :class="{ 'vista-solo-lectura': modoOffline }">
+    <ion-content :fullscreen="true" class="avisos">
       <BannerOffline :activo="modoOffline" :fecha="fechaRespaldo" />
 
       <div id="container">
@@ -187,9 +187,9 @@
 
         </ion-card>
       </div>
-
-      <AppContactFooter />
     </ion-content>
+
+    <AppContactFooter />
   </ion-page> 
 </template> 
 

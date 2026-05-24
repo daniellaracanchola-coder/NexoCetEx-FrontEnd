@@ -444,21 +444,32 @@ ion-toolbar {
   font-size: 0.75rem;
 }
 
-.app-contact-footer {
-  padding: 20px 16px 28px;
+.app-contact-footer ion-toolbar {
+  --min-height: auto;
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.app-contact-footer__content {
+  width: 100%;
+  padding: 6px 12px 8px;
   text-align: center;
 }
 
-.app-contact-footer p {
+.app-contact-footer__content p {
   margin: 0;
-  color: var(--nexo-text-muted);
-  font-size: 0.8rem;
-  line-height: 1.45;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--nexo-toolbar-text);
+  opacity: 0.95;
 }
 
-.app-contact-footer a {
-  color: var(--ion-color-primary);
-  text-decoration: none;
+.app-contact-footer__content a {
+  color: var(--nexo-toolbar-text);
+  font-weight: 600;
+  text-decoration: underline;
   word-break: break-all;
 }
 

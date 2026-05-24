@@ -31,9 +31,9 @@
       <p v-if="errorMensaje" class="error-text">
         {{ errorMensaje }}
       </p>
-
-      <AppContactFooter />
     </ion-content>
+
+    <AppContactFooter />
   </ion-page>
 </template>
 
